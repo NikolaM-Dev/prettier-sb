@@ -1,0 +1,24 @@
+# List avalible recipes
+default:
+    just --list
+
+# Build my own prettier version
+build:
+    cd ../../../
+    bun run build
+
+# Clean the previous oupouts
+clean:
+    rm -f *.md
+    cp ./pre-formatted/*.md .
+
+# Run checkboxs test
+test_checboxes: clean
+    bun ../../bin/prettier.cjs --write ./checkboxs.md
+    bat ./checkboxs.md
+
+
+# Run frontmatter test
+test_frontmatter: clean
+    bun ../../bin/prettier.cjs --write ./frontmatter.md
+    bat ./frontmatter.md
