@@ -22,6 +22,7 @@ import {
 import { getDocType, propagateBreaks } from "../utilities/index.js";
 import InvalidDocError from "../utilities/invalid-doc-error.js";
 import { makeAlign, makeIndent, ROOT_INDENT } from "./indent.js";
+import PrintResult from "./print-result.js";
 import { trimIndentation } from "./trim-indentation.js";
 
 /**
@@ -187,16 +188,11 @@ function printDocToString(doc, options) {
   // commands to the array instead of recursively calling `print`.
   /** @type Command[] */
   const commands = [{ indent: ROOT_INDENT, mode: MODE_BREAK, doc }];
-  let output = "";
   let shouldRemeasure = false;
   /** @type Command[] */
   const lineSuffix = [];
-  const cursorPositions = [];
 
-  /** @type string[] */
-  const settledOutput = [];
-  const settledCursorPositions = [];
-  let settledTextLength = 0;
+  const result = new PrintResult();
 
   propagateBreaks(doc);
 
@@ -208,7 +204,7 @@ function printDocToString(doc, options) {
           newLine !== "\n" ? doc.replaceAll("\n", newLine) : doc;
         // Plugins may print single string, should skip measure the width
         if (formatted) {
-          output += formatted;
+          result.write(formatted);
           if (commands.length > 0) {
             position += getStringWidth(formatted);
           }
@@ -223,10 +219,7 @@ function printDocToString(doc, options) {
         break;
 
       case DOC_TYPE_CURSOR:
-        if (cursorPositions.length >= 2) {
-          throw new Error("There are too many 'cursor' in doc.");
-        }
-        cursorPositions.push(settledTextLength + output.length);
+        result.markPosition();
         break;
 
       case DOC_TYPE_INDENT:
@@ -246,37 +239,45 @@ function printDocToString(doc, options) {
         break;
 
       case DOC_TYPE_TRIM:
-        trim();
+        position -= result.trim();
         break;
 
       case DOC_TYPE_GROUP:
-        switch (mode) {
-          case MODE_FLAT:
-            if (!shouldRemeasure) {
-              commands.push({
+        {
+          /** @type {Command} */
+          const command = (function printGroup() {
+            if (mode === MODE_FLAT && !shouldRemeasure) {
+              return {
                 indent,
                 mode: doc.break ? MODE_BREAK : MODE_FLAT,
                 doc: doc.contents,
-              });
-
-              break;
+              };
             }
-          // fallthrough
 
-          case MODE_BREAK: {
             shouldRemeasure = false;
-
-            /** @type {Command} */
-            const next = { indent, mode: MODE_FLAT, doc: doc.contents };
             const remainingWidth = width - position;
             const hasLineSuffix = lineSuffix.length > 0;
 
+            /** @type {Command} */
+            const flatCommand = { indent, mode: MODE_FLAT, doc: doc.contents };
             if (
               !doc.break &&
-              fits(next, commands, remainingWidth, hasLineSuffix, groupModeMap)
+              fits(
+                flatCommand,
+                commands,
+                remainingWidth,
+                hasLineSuffix,
+                groupModeMap,
+              )
             ) {
-              commands.push(next);
-            } else {
+              return flatCommand;
+            }
+
+            if (!doc.expandedStates) {
+              return { indent, mode: MODE_BREAK, doc: doc.contents };
+            }
+
+            if (!doc.break) {
               // Expanded states are a rare case where a document
               // can manually provide multiple representations of
               // itself. It provides an array of documents
@@ -284,64 +285,39 @@ function printDocToString(doc, options) {
               // representation first to the most expanded. If a
               // group has these, we need to manually go through
               // these states and find the first one that fits.
-              // eslint-disable-next-line no-lonely-if
-              if (doc.expandedStates) {
-                const mostExpanded = doc.expandedStates.at(-1);
-
-                if (doc.break) {
-                  commands.push({
-                    indent,
-                    mode: MODE_BREAK,
-                    doc: mostExpanded,
-                  });
-
-                  break;
-                } else {
-                  for (
-                    let index = 1;
-                    index < doc.expandedStates.length + 1;
-                    index++
-                  ) {
-                    if (index >= doc.expandedStates.length) {
-                      commands.push({
-                        indent,
-                        mode: MODE_BREAK,
-                        doc: mostExpanded,
-                      });
-
-                      break;
-                    } else {
-                      const state = doc.expandedStates[index];
-                      /** @type {Command} */
-                      const cmd = { indent, mode: MODE_FLAT, doc: state };
-
-                      if (
-                        fits(
-                          cmd,
-                          commands,
-                          remainingWidth,
-                          hasLineSuffix,
-                          groupModeMap,
-                        )
-                      ) {
-                        commands.push(cmd);
-
-                        break;
-                      }
-                    }
-                  }
+              for (
+                let index = 1;
+                index < doc.expandedStates.length - 1;
+                index++
+              ) {
+                /** @type {Command} */
+                const flatCommand = {
+                  indent,
+                  mode: MODE_FLAT,
+                  doc: doc.expandedStates[index],
+                };
+                if (
+                  fits(
+                    flatCommand,
+                    commands,
+                    remainingWidth,
+                    hasLineSuffix,
+                    groupModeMap,
+                  )
+                ) {
+                  return flatCommand;
                 }
-              } else {
-                commands.push({ indent, mode: MODE_BREAK, doc: doc.contents });
               }
             }
 
-            break;
-          }
-        }
+            return { indent, mode: MODE_BREAK, doc: doc.expandedStates.at(-1) };
+          })();
 
-        if (doc.id) {
-          groupModeMap[doc.id] = commands.at(-1).mode;
+          commands.push(command);
+
+          if (doc.id) {
+            groupModeMap[doc.id] = command.mode;
+          }
         }
         break;
       // Fills each line with as much code as possible before moving to a new
@@ -498,8 +474,7 @@ function printDocToString(doc, options) {
           case MODE_FLAT:
             if (!doc.hard) {
               if (!doc.soft) {
-                output += " ";
-
+                result.write(" ");
                 position += 1;
               }
 
@@ -523,17 +498,17 @@ function printDocToString(doc, options) {
             }
 
             if (doc.literal) {
-              output += newLine;
+              result.write(newLine);
               position = 0;
               if (indent.root) {
                 if (indent.root.value) {
-                  output += indent.root.value;
+                  result.write(indent.root.value);
                 }
                 position = indent.root.length;
               }
             } else {
-              trim();
-              output += newLine + indent.value;
+              result.trim();
+              result.write(newLine + indent.value);
               position = indent.length;
             }
             break;
@@ -560,10 +535,9 @@ function printDocToString(doc, options) {
     }
   }
 
-  const formatted = settledOutput.join("") + output;
-  const finalCursorPositions = [...settledCursorPositions, ...cursorPositions];
+  const { text: formatted, positions: cursorPositions } = result.finish();
 
-  if (finalCursorPositions.length !== 2) {
+  if (cursorPositions.length !== 2) {
     // If the doc contained ONE cursor command,
     // instead of the expected zero or two. If the doc being printed was
     // returned by printAstToDoc, then the only ways this can have happened
@@ -592,37 +566,12 @@ function printDocToString(doc, options) {
     return { formatted };
   }
 
-  const cursorNodeStart = finalCursorPositions[0];
+  const [cursorNodeStart, cursorNodeEnd] = cursorPositions;
   return {
     formatted,
     cursorNodeStart,
-    cursorNodeText: formatted.slice(
-      cursorNodeStart,
-      finalCursorPositions.at(-1),
-    ),
+    cursorNodeText: formatted.slice(cursorNodeStart, cursorNodeEnd),
   };
-
-  function trim() {
-    const { text: trimmed, count } = trimIndentation(output);
-
-    if (trimmed) {
-      settledOutput.push(trimmed);
-      settledTextLength += trimmed.length;
-    }
-
-    output = "";
-    position -= count;
-
-    if (cursorPositions.length > 0) {
-      settledCursorPositions.push(
-        ...cursorPositions.map((position) =>
-          Math.min(position, settledTextLength),
-        ),
-      );
-
-      cursorPositions.length = 0;
-    }
-  }
 }
 
 export { printDocToString };

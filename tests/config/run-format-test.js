@@ -48,6 +48,10 @@ const unstableTests = new Map(
     "typescript/import-type/long-module-name/long-module-name4.ts",
     // Unstable due to lack of indent information
     "js/multiparser-comments/comment-inside.js",
+    [
+      "typescript/method-chain/object/issue-17239.ts",
+      (options) => options.objectWrap !== "collapse",
+    ],
   ].map((fixture) => {
     const [file, isUnstable = () => true] = Array.isArray(fixture)
       ? fixture
@@ -73,9 +77,27 @@ const meriyahDisabledTests = new Set(
   ].map((file) => path.join(__dirname, "../format", file)),
 );
 const babelTsDisabledTests = new Set(
-  ["conformance/types/moduleDeclaration/kind-detection.ts"].map((file) =>
-    path.join(__dirname, "../format/typescript", file),
-  ),
+  [
+    "conformance/types/moduleDeclaration/kind-detection.ts",
+    // https://github.com/babel/babel/pull/17659
+    "conformance/internalModules/importDeclarations/circularImportAlias.ts",
+    "conformance/internalModules/importDeclarations/exportImportAlias.ts",
+    "conformance/internalModules/importDeclarations/importAliasIdentifiers.ts",
+    "conformance/internalModules/importDeclarations/shadowedInternalModule.ts",
+    "conformance/types/moduleDeclaration/moduleDeclaration.ts",
+    "conformance/types/ambient/ambientDeclarations.ts",
+    "compiler/declareDottedModuleName.ts",
+    "compiler/privacyGloImport.ts",
+    "declare/declare_module.ts",
+    "const/initializer-ambient-context.ts",
+    "keywords/keywords.ts",
+    "keywords/module.ts",
+    "module/global.ts",
+    "module/keyword.ts",
+    "module/module_nested.ts",
+    "custom/stability/moduleBlock.ts",
+    "interface2/module.ts",
+  ].map((file) => path.join(__dirname, "../format/typescript", file)),
 );
 const oxcDisabledTests = new Set();
 const oxcTsDisabledTests = new Set();

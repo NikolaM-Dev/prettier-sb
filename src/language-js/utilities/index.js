@@ -1103,6 +1103,16 @@ function isShorthandSpecifier(specifier) {
   }
 }
 
+function isIifeCalleeOrTaggedTemplateExpressionTag(path) {
+  const { node } = path;
+  return (
+    (node.type === "FunctionExpression" ||
+      node.type === "ArrowFunctionExpression") &&
+    ((path.key === "callee" && isCallExpression(path.parent)) ||
+      (path.key === "tag" && path.parent.type === "TaggedTemplateExpression"))
+  );
+}
+
 export {
   CommentCheckFlags,
   createTypeCheckFunction,
@@ -1132,6 +1142,7 @@ export {
   isFlowObjectTypePropertyAFunction,
   isFunctionCompositionArgs,
   isFunctionOrArrowExpression,
+  isIifeCalleeOrTaggedTemplateExpressionTag,
   isIntersectionType,
   isJsxElement,
   isLiteral,

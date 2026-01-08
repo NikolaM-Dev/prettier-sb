@@ -37,21 +37,6 @@ export function buildCliArgs(availableOptions, options) {
   return args;
 }
 
-export function getCodemirrorMode(parser) {
-  switch (parser) {
-    case "css":
-    case "less":
-    case "scss":
-      return "css";
-    case "graphql":
-      return "graphql";
-    case "markdown":
-      return "markdown";
-    default:
-      return "jsx";
-  }
-}
-
 const astAutoFold = {
   estree: /^\s*"(loc|start|end|tokens|\w+Comments|comments)":/,
   postcss: /^\s*"(source|input|raws|file)":/,
@@ -95,28 +80,4 @@ export function getAstAutoFold(parser) {
     default:
       return astAutoFold[parser];
   }
-}
-
-export function convertSelectionToRange({ head, anchor }, content) {
-  const lines = content.split("\n");
-  return [head, anchor]
-    .map(
-      ({ ch, line }) =>
-        lines.slice(0, line).join("\n").length + ch + (line ? 1 : 0),
-    )
-    .sort((a, b) => a - b);
-}
-
-export function convertOffsetToSelection(offset, content) {
-  let line = 0;
-  let ch = 0;
-  for (let i = 0; i < offset && i <= content.length; i++) {
-    if (content[i] === "\n") {
-      line++;
-      ch = 0;
-    } else {
-      ch++;
-    }
-  }
-  return { anchor: { line, ch } };
 }
