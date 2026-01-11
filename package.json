@@ -209,6 +209,7 @@
     "test:production:browser:chrome:umd": "cross-env TEST_BUNDLE_FORMAT=umd yarn test:production:browser:chrome",
     "test:production:browser:firefox:umd": "cross-env TEST_BUNDLE_FORMAT=umd yarn test:production:browser:firefox",
     "test:production-lint": "eslint dist --config=./scripts/production-eslint-config.js --quiet --format friendly",
+    "test:second-brain": "jest --  ./tests/format/markdown/second-brain",
     "perf": "yarn && yarn build && cross-env NODE_ENV=production node ./dist/prettier/bin/prettier.cjs",
     "perf:inspect": "yarn && yarn build && cross-env NODE_ENV=production node --inspect-brk ./dist/prettier/bin/prettier.cjs",
     "perf:benchmark": "yarn perf --debug-benchmark",
