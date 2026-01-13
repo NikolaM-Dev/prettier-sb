@@ -1,0 +1,137 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Permanent Note formatting > matchs snapshot 1`] = `
+"---
+id: 20260107T112058
+aliases:
+  - TypeScript
+tags:
+  - zk/pn
+  - type/moc
+createdAt: "[[2026-01-07]]"
+updatedAt: 2026-01-12, 21:45:00
+---
+
+# TypeScript
+
+- [[What's TypeScript?]]
+- [[How to Initialize TypeScript in Our Project]]
+- [[How to Compile Our TypeScript Code in Real Time?]]
+
+- [[What Are Symbols in TypeScript?]]
+- [[What Are Sets in TypeScript?]]
+- [[How to Remove Duplicated Elements in an Array in TypeScript?]]
+- [[What Are Tuples in TypeScript?]]
+
+- [[What Are Compile Time Errors?]]
+- [[What Are Runtime Errors?]]
+
+- [[What's Structural Typing in TypeScript?]]
+- [[How to Define Types Aliases in TypeScript?]]
+- [[What Are Const Declarations in TypeScript?]]
+
+- [[What Are Variadic Functions in TypeScript?]]
+- [[What Are First Class Functions in TypeScript?]]
+- [[How to Type First Class Functions in TypeScript?]]
+
+- [[Should We Use JavaScript Private Elements in TypeScript?]]
+
+- [[What Target Should We Use in Our Tsconfig.json?]]
+
+# What's the Unkwon Type in TypeScript?
+
+\`unkwon\` is a safety version of the \`any\` type. If you want to use a variable
+type it as \`unknown\`, you first need to validate that the method you are trying
+to call or the value you are trying to reassign is valid.
+
+\`\`\`ts
+let exampleUnkwon: unkwon;
+
+exampleUnkwon = 123;
+exampleUnkwon = "foo";
+
+if (typeof exampleUnkwon == "string") {
+  exampleUnkwon.trim();
+}
+
+if (typeof exampleUnkwon == "boolean") {
+  let exampleSetBool: boolean = exampleUnkwon;
+}
+\`\`\`
+
+> [!TIP]
+>
+> One of the best use of the type \`unkwon\` is to do a safety migration from >
+> JavaScript to TypeScript.
+
+# What Are Type Assertions in TypeScript?
+
+Type Assertions is a way to say to the compiler that we know we are doing. That
+is pretty much like a \`cast\` in other typed of language.
+
+> [!DANGER]
+>
+> Type Assertions are very handy, but an ideal approach is to use proper Type >
+> Annotations or Runtime JavaScript type checks instead.
+
+# 🌟 See Also
+
+- [ ] Explain Runtime JavaScript type checks instead.
+- [ ] Link to Clang cast
+- [ ] Link to Type Narrowing
+
+\`\`\`ts
+let hello = load();
+const trimmed = (hello as string).trim();
+\`\`\`
+
+# What Are Type Declarations in TypeScript?
+
+A declaration file provides a way to declare the existence of some types or
+values without actually providing implementations for those values.
+
+# 🌟 See Also
+
+- [ ] Link to \`@types/node\`
+
+# How to Create NPM Packages?
+
+## ️⚙️Initialization
+
+1. First, we are starting our project using the following \`tsc\` command:
+
+\`\`\`bash
+bunx tsc --init --rootDir src --outDir lib --sourceMap --declaration --declarationMap
+\`\`\`
+
+> [!HELP]
+
+- \`--init\` to initialize the \`tsconfig.json\` file.
+- \`--rootDir src\`, where our Source Code is going to live.
+- \`--outDir lib\`, where our Compiled Code is going to end.
+- \`--sourceMap\`, we enable source maps so we can debug the TypeScript Source
+  Code from the generated JavaScript.
+- \`--declaration\`, we enable declarations so the compiler generates Type
+  Definitions which can be used by our TypeScript consumers.
+- \`--declarationMap\`, we enable declaration map which allows our TypeScript
+  consumers to navigate from the Type Definitions to the TypeScript source code.
+
+2. Now it's time to modify some properties in the \`package.json\`.
+
+- We are going to add or change the \`main\` property to \`lib\`.
+- And we are going to add or change the \`types\` property to also \`lib\`.
+
+## 📢 Publish
+
+Using the command \`npm publish\`, it makes this package available for use for
+anyone else through NPM.
+
+# 🌟 See Also
+
+- [ ] Link to Type Definitions.
+
+# 🌟 See Also
+
+- [[JavaScript]]
+"
+`;

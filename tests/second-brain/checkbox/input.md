@@ -1,0 +1,7 @@
+- Normal List Item
+- [ ] [New books day!](https://x.com/adibhanna/status/1768369473977725082?s=20)
+      ➕ 2025-12-27
+- [ ] [Best Year - Mel Robbins](https://www.melrobbins.com/bestyear/) ➕
+      2025-12-28
+- [ ] [The Let Them Theory Book Mel Robbins](https://www.melrobbins.com/book/the-let-them-theory/)
+      ➕ 2025-12-28
