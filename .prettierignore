@@ -2,6 +2,7 @@
 
 # Ignore directories and files in 'tests/format'
 /tests/format/**/*.*
+/tests/second-brain/**/*.*
 # Unignore directories and 'format.test.js' file
 !/tests/format/**/
 !/tests/format/**/format.test.js
