@@ -12,9 +12,6 @@ install: build
     ln -sf "$(pwd)/dist/prettier/bin/prettier.cjs" "$HOME/.local/bin/prettier-sb"
 
 # Test `second-brain` functionality
-test_sb:
+test:
     bun run test:second-brain
 
-# Test everything
-tests:
-    bun run test
