@@ -25,15 +25,19 @@ function printList(path, options, print) {
     options,
   );
 
+  const defaultProseWrap = options.proseWrap;
   const minIndent = requiredIndent(path);
 
-  return printChildren(path, options, print, {
+  const docList = printChildren(path, options, print, {
     processor() {
       const prefix = getPrefix();
       const { node: childNode } = path;
 
       // Don't wrap checklist since I'm using [Tasks Plugin](https://publish.obsidian.md/tasks/Introduction)
-      if (childNode.checked != null) {
+      if (
+        childNode.type === "listItem" &&
+        typeof childNode.checked === "boolean"
+      ) {
         options.proseWrap = "never";
       }
 
@@ -89,6 +93,10 @@ function printList(path, options, print) {
       }
     },
   });
+
+  options.proseWrap = defaultProseWrap;
+
+  return docList;
 }
 
 function printListItem(path, options, print, listPrefix) {
