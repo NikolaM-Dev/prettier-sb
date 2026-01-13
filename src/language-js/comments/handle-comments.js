@@ -9,6 +9,7 @@ import hasNewline from "../../utilities/has-newline.js";
 import hasNewlineInRange from "../../utilities/has-newline-in-range.js";
 import isNonEmptyArray from "../../utilities/is-non-empty-array.js";
 import { locEnd, locStart } from "../loc.js";
+import { isInsideCallExpressionParentheses } from "../utilities/call-expression-parentheses.js";
 import getTextWithoutComments from "../utilities/get-text-without-comments.js";
 import {
   createTypeCheckFunction,
@@ -82,6 +83,7 @@ function handleOwnLineComment(context) {
     handleCommentsInDestructuringPattern,
     handleTSMappedTypeComments,
     handleBinaryCastExpressionComment,
+    handleCommentInEmptyParens,
   ].some((fn) => fn(context));
 }
 
@@ -112,6 +114,7 @@ function handleEndOfLineComment(context) {
     handleCommentAfterArrowExpression,
     handlePropertySignatureComments,
     handleBinaryCastExpressionComment,
+    handleCommentInEmptyParens,
   ].some((fn) => fn(context));
 }
 
@@ -635,10 +638,14 @@ function handleCommentInEmptyParens({ comment, enclosingNode, options }) {
     return false;
   }
 
+  // This condition should be removed, but excluded for function parameters in #18615 to make PRs smaller
+  const isRemainingComment = comment.placement === "remaining";
+
   // Only add dangling comments to fix the case when no params are present,
   // i.e. a function without any argument.
   if (
-    ((isRealFunctionLikeNode(enclosingNode) &&
+    ((isRemainingComment &&
+      isRealFunctionLikeNode(enclosingNode) &&
       getFunctionParameters(enclosingNode).length === 0) ||
       (isCallLikeExpression(enclosingNode) &&
         getCallArguments(enclosingNode).length === 0)) &&
@@ -649,6 +656,7 @@ function handleCommentInEmptyParens({ comment, enclosingNode, options }) {
   }
 
   if (
+    isRemainingComment &&
     (enclosingNode.type === "MethodDefinition" ||
       enclosingNode.type === "TSAbstractMethodDefinition") &&
     getFunctionParameters(enclosingNode.value).length === 0 &&
@@ -773,12 +781,13 @@ function handleCallExpressionComments({
   comment,
   precedingNode,
   enclosingNode,
+  options,
 }) {
   if (
     isCallExpression(enclosingNode) &&
-    precedingNode &&
     enclosingNode.callee === precedingNode &&
-    enclosingNode.arguments.length > 0
+    enclosingNode.arguments.length > 0 &&
+    isInsideCallExpressionParentheses(enclosingNode, comment, options)
   ) {
     addLeadingComment(enclosingNode.arguments[0], comment);
     return true;

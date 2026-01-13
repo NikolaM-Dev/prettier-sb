@@ -89,16 +89,6 @@ const mainModule = {
           module: require.resolve("@babel/code-frame"),
           process(text) {
             text = text.replaceAll(
-              "var picocolors = require('picocolors');",
-              "",
-            );
-            text = text.replaceAll("var jsTokens = require('js-tokens');", "");
-            text = text.replaceAll(
-              "var helperValidatorIdentifier = require('@babel/helper-validator-identifier');",
-              "",
-            );
-
-            text = text.replaceAll(
               /(?<=\n)let tokenize;\n\{\n.*?\n\}(?=\n)/gs,
               "",
             );
@@ -130,9 +120,6 @@ const mainModule = {
               "const shouldHighlight = opts.forceColor || isColorSupported() && opts.highlightCode;",
               "const shouldHighlight = false;",
             );
-
-            text = text.replaceAll("exports.default = index;", "");
-            text = text.replaceAll("exports.highlight = highlight;", "");
 
             return text;
           },
@@ -503,7 +490,7 @@ const pluginFiles = [
     input: "src/plugins/acorn.js",
     replaceModule: [
       {
-        module: resolveEsmModulePath("espree"),
+        module: getPackageFile("espree"),
         process(text) {
           const lines = text.split("\n");
 
@@ -530,6 +517,18 @@ const pluginFiles = [
 
           text = [...lines, ...parserCodeLines].join("\n");
 
+          return text;
+        },
+      },
+      {
+        module: getPackageFile("espree/lib/espree.js"),
+        process(text) {
+          // We are currently not using tokens
+          text = text.replace(
+            'import TokenTranslator from "./token-translator.js";',
+            "",
+          );
+          text = text.replaceAll("options.tokens === true", "false");
           return text;
         },
       },

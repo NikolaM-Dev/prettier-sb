@@ -28,18 +28,20 @@ import { printTypeAnnotationProperty } from "./type-annotation.js";
 
 /** @import {Doc} from "../../document/index.js" */
 
-function printEmptyArrayElements(path, options, openBracket, closeBracket) {
+function printEmptyArrayElements(path, options) {
   const { node } = path;
-  const inexact = node.inexact ? "..." : "";
-  if (!hasComment(node, CommentCheckFlags.Dangling)) {
-    return [openBracket, inexact, closeBracket];
-  }
+
   return group([
-    openBracket,
-    inexact,
-    printDanglingComments(path, options, { indent: true }),
-    softline,
-    closeBracket,
+    "[",
+    hasComment(node, CommentCheckFlags.Dangling)
+      ? [
+          indent([softline, printDanglingComments(path, options)]),
+          hasComment(node, CommentCheckFlags.Dangling | CommentCheckFlags.Line)
+            ? hardline
+            : softline,
+        ]
+      : [],
+    "]",
   ]);
 }
 
@@ -54,14 +56,10 @@ function printArray(path, options, print) {
   /** @type{Doc[]} */
   const parts = [];
 
-  const openBracket = "[";
-  const closeBracket = "]";
   const elementsProperty = isTupleType(node) ? "elementTypes" : "elements";
   const elements = node[elementsProperty];
-  if (elements.length === 0) {
-    parts.push(
-      printEmptyArrayElements(path, options, openBracket, closeBracket),
-    );
+  if (elements.length === 0 && !node.inexact) {
+    parts.push(printEmptyArrayElements(path, options));
   } else {
     const lastElem = elements.at(-1);
     const canHaveTrailingComma =
@@ -82,23 +80,26 @@ function printArray(path, options, print) {
     const groupId = Symbol("array");
 
     const shouldBreak =
-      !options.__inJestEach &&
-      elements.length > 1 &&
-      elements.every((element, i, elements) => {
-        const elementType = element?.type;
-        if (!isArrayExpression(element) && !isObjectExpression(element)) {
-          return false;
-        }
+      (!options.__inJestEach &&
+        elements.length > 1 &&
+        elements.every((element, i, elements) => {
+          const elementType = element?.type;
+          if (!isArrayExpression(element) && !isObjectExpression(element)) {
+            return false;
+          }
 
-        const nextElement = elements[i + 1];
-        if (nextElement && elementType !== nextElement.type) {
-          return false;
-        }
+          const nextElement = elements[i + 1];
+          if (nextElement && elementType !== nextElement.type) {
+            return false;
+          }
 
-        const itemsKey = isArrayExpression(element) ? "elements" : "properties";
+          const itemsKey = isArrayExpression(element)
+            ? "elements"
+            : "properties";
 
-        return element[itemsKey] && element[itemsKey].length > 1;
-      });
+          return element[itemsKey] && element[itemsKey].length > 1;
+        })) ||
+      hasComment(node, CommentCheckFlags.Dangling | CommentCheckFlags.Line);
 
     const shouldUseConciseFormatting = isConciselyPrintedArray(node, options);
 
@@ -115,7 +116,7 @@ function printArray(path, options, print) {
     parts.push(
       group(
         [
-          openBracket,
+          "[",
           indent([
             softline,
             shouldUseConciseFormatting
@@ -133,7 +134,7 @@ function printArray(path, options, print) {
             printDanglingComments(path, options),
           ]),
           softline,
-          closeBracket,
+          "]",
         ],
         { shouldBreak, id: groupId },
       ),

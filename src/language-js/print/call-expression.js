@@ -1,4 +1,4 @@
-import { group, join } from "../../document/index.js";
+import { group, join, lineSuffixBoundary } from "../../document/index.js";
 import needsParentheses from "../parentheses/needs-parentheses.js";
 import {
   getCallArguments,
@@ -32,7 +32,7 @@ function printCallExpression(path, options, print) {
   // `TSImportType.typeArguments` is after `qualifier`, not before the "arguments"
   const typeArgumentsDoc =
     node.type !== "TSImportType" && node.typeArguments
-      ? print("typeArguments")
+      ? [print("typeArguments"), lineSuffixBoundary]
       : "";
 
   const isTemplateLiteralSingleArg =
@@ -57,7 +57,6 @@ function printCallExpression(path, options, print) {
     });
     if (!(isTemplateLiteralSingleArg && printed[0].label?.embed)) {
       return [
-        isNewExpression ? "new " : "",
         printCallee(path, print),
         optional,
         typeArgumentsDoc,
@@ -89,7 +88,6 @@ function printCallExpression(path, options, print) {
   }
 
   const contents = [
-    isNewExpression ? "new " : "",
     printCallee(path, print),
     optional,
     typeArgumentsDoc,
@@ -120,7 +118,11 @@ function printCallee(path, print) {
     return "require";
   }
 
-  return print("callee");
+  return [
+    node.type === "NewExpression" ? "new " : "",
+    print("callee"),
+    lineSuffixBoundary,
+  ];
 }
 
 const moduleImportCallees = [
