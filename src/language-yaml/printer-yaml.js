@@ -264,9 +264,6 @@ function printNode(path, options, print) {
         node.position.end.offset - 1,
       );
 
-      // Don't wrap quoted attributes in the frontMatter
-      options.proseWrap = "never";
-
       if (
         (node.type === "quoteSingle" && raw.includes("\\")) ||
         (node.type === "quoteDouble" && /\\[^"]/.test(raw))
@@ -414,7 +411,13 @@ function printFlowScalarContent(nodeType, content, options) {
   const lineContents = getFlowScalarLineContents(nodeType, content, options);
   return join(
     hardline,
-    lineContents.map((lineContentWords) => fill(join(line, lineContentWords))),
+    lineContents.map((lineContentWords) => {
+      if (content.length > options.printWidth) {
+        return fill(join(" ", lineContentWords));
+      }
+
+      return fill(join(line, lineContentWords));
+    }),
   );
 }
 

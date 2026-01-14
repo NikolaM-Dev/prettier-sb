@@ -233,6 +233,7 @@
     "build": "node ./scripts/build/build.js",
     "build:website": "node ./scripts/build-website.js",
     "build:website:pr": "cross-env PULL_REQUEST=true yarn build:website",
+    "build:second-brain": "node ./scripts/build/build.js --package prettier",
     "generate-changelog": "node ./scripts/generate-changelog.js",
     "generate-builtin-plugins": "node scripts/generate-builtin-plugins.js",
     "generate-flow-estree-type-definition": "node scripts/generate-flow-estree-type-definition.js",
