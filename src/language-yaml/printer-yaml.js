@@ -253,6 +253,7 @@ function printNode(path, options, print) {
           node.position.end.offset,
         ),
         options,
+        node,
       );
     case "quoteDouble":
     case "quoteSingle": {
@@ -407,12 +408,14 @@ function shouldPrintDocumentHeadEndMarker(path) {
   );
 }
 
-function printFlowScalarContent(nodeType, content, options) {
+function printFlowScalarContent(nodeType, content, options, node) {
   const lineContents = getFlowScalarLineContents(nodeType, content, options);
   return join(
     hardline,
     lineContents.map((lineContentWords) => {
-      if (content.length > options.printWidth) {
+      const isAlias = node !== undefined && node.position.start.column === 5;
+      const isLong = content.length > options.printWidth;
+      if (isLong || isAlias) {
         return fill(join(" ", lineContentWords));
       }
 
