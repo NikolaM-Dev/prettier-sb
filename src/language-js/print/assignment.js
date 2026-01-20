@@ -16,6 +16,7 @@ import {
   isBinaryish,
   isBooleanLiteral,
   isCallExpression,
+  isChainElementWrapper,
   isIntersectionType,
   isLoneShortArgument,
   isMemberExpression,
@@ -145,9 +146,7 @@ function chooseLayout(path, options, print, leftDoc, rightPropertyName) {
     (rightNode.type === "CallExpression" &&
       rightNode.callee.name === "require") ||
     // do not put values on a separate line from the key in json
-    options.parser === "json5" ||
-    options.parser === "jsonc" ||
-    options.parser === "json"
+    path.root.type === "JsonRoot"
   ) {
     return "never-break-after-operator";
   }
@@ -365,7 +364,7 @@ function isPoorlyBreakableMemberOrCallChain(
   const goDeeper = () =>
     isPoorlyBreakableMemberOrCallChain(path, options, print, true);
 
-  if (node.type === "ChainExpression" || node.type === "TSNonNullExpression") {
+  if (isChainElementWrapper(node)) {
     return path.call(goDeeper, "expression");
   }
 
@@ -419,7 +418,7 @@ function isObjectPropertyWithShortKey(node, keyDoc, options) {
 }
 
 function isCallExpressionWithComplexTypeArguments(node, print) {
-  const typeArgs = getTypeArgumentsFromCallExpression(node);
+  const typeArgs = node.typeArguments?.params;
   if (isNonEmptyArray(typeArgs)) {
     if (typeArgs.length > 1) {
       return true;
@@ -435,18 +434,11 @@ function isCallExpressionWithComplexTypeArguments(node, print) {
         return true;
       }
     }
-    const typeArgsKeyName = node.typeParameters
-      ? "typeParameters"
-      : "typeArguments";
-    if (willBreak(print(typeArgsKeyName))) {
+    if (willBreak(print("typeArguments"))) {
       return true;
     }
   }
   return false;
-}
-
-function getTypeArgumentsFromCallExpression(node) {
-  return (node.typeParameters ?? node.typeArguments)?.params;
 }
 
 function isGeneric(node) {

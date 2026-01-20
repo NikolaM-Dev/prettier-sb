@@ -11,6 +11,7 @@ import {
   isBinaryCastExpression,
   isBitwiseOperator,
   isCallExpression,
+  isCallOrNewExpression,
   isConditionalType,
   isIntersectionType,
   isMemberExpression,
@@ -22,6 +23,7 @@ import {
   isUnionType,
   shouldFlatten,
   startsWithNoLookaheadToken,
+  stripChainElementWrappers,
 } from "../utilities/index.js";
 import { returnArgumentHasLeadingComment } from "../utilities/return-statement-has-leading-comment.js";
 import { shouldAddParenthesesToIdentifier } from "./identifier.js";
@@ -111,37 +113,38 @@ function needsParentheses(path, options) {
     case "ClassExpression":
       // Add parens around the extends clause of a class. It is needed for almost
       // all expressions.
-      if (
-        key === "superClass" &&
-        (node.type === "ArrowFunctionExpression" ||
-          node.type === "AssignmentExpression" ||
-          node.type === "AwaitExpression" ||
-          node.type === "BinaryExpression" ||
-          node.type === "ConditionalExpression" ||
-          node.type === "LogicalExpression" ||
-          node.type === "NewExpression" ||
-          node.type === "ObjectExpression" ||
-          node.type === "SequenceExpression" ||
-          node.type === "TaggedTemplateExpression" ||
-          node.type === "UnaryExpression" ||
-          node.type === "UpdateExpression" ||
-          node.type === "YieldExpression" ||
-          node.type === "TSNonNullExpression" ||
-          (node.type === "ClassExpression" && isNonEmptyArray(node.decorators)))
-      ) {
-        return true;
+      if (key === "superClass") {
+        const superClass = stripChainElementWrappers(node);
+        if (
+          superClass.type === "ArrowFunctionExpression" ||
+          superClass.type === "AssignmentExpression" ||
+          superClass.type === "AwaitExpression" ||
+          superClass.type === "BinaryExpression" ||
+          superClass.type === "ConditionalExpression" ||
+          superClass.type === "LogicalExpression" ||
+          superClass.type === "NewExpression" ||
+          superClass.type === "ObjectExpression" ||
+          superClass.type === "SequenceExpression" ||
+          superClass.type === "TaggedTemplateExpression" ||
+          superClass.type === "UnaryExpression" ||
+          superClass.type === "UpdateExpression" ||
+          superClass.type === "YieldExpression" ||
+          (superClass.type === "ClassExpression" &&
+            isNonEmptyArray(superClass.decorators))
+        ) {
+          return true;
+        }
       }
       break;
 
     case "ExportDefaultDeclaration":
-      return (
-        // `export default function` or `export default class` can't be followed by
-        // anything after. So an expression like `export default (function(){}).toString()`
-        // needs to be followed by a parentheses
-        shouldWrapFunctionForExportDefault(path, options) ||
-        // `export default (foo, bar)` also needs parentheses
-        node.type === "SequenceExpression"
-      );
+      // `export default function` or `export default class` can't be followed by
+      // anything after. So an expression like `export default (function(){}).toString()`
+      // needs to be followed by a parentheses
+      if (shouldWrapFunctionForExportDefault(path, options)) {
+        return true;
+      }
+      break;
 
     case "Decorator":
       if (
@@ -771,6 +774,8 @@ function needsParentheses(path, options) {
           return key === "callee";
         case "TaggedTemplateExpression":
           return true; // This is basically a kind of IIFE.
+        case "ExportDefaultDeclaration":
+          return key === "declaration";
         default:
           return false;
       }
@@ -817,6 +822,8 @@ function needsParentheses(path, options) {
       switch (parent.type) {
         case "NewExpression":
           return key === "callee";
+        case "ExportDefaultDeclaration":
+          return key === "declaration";
         default:
           return false;
       }
@@ -897,7 +904,6 @@ function needsParentheses(path, options) {
           parent.type !== "AssignmentExpression" &&
           parent.type !== "AssignmentPattern" &&
           parent.type !== "BinaryExpression" &&
-          parent.type !== "NewExpression" &&
           parent.type !== "ConditionalExpression" &&
           parent.type !== "ExpressionStatement" &&
           parent.type !== "JsExpressionRoot" &&
@@ -906,7 +912,7 @@ function needsParentheses(path, options) {
           parent.type !== "JSXExpressionContainer" &&
           parent.type !== "JSXFragment" &&
           parent.type !== "LogicalExpression" &&
-          !isCallExpression(parent) &&
+          !isCallOrNewExpression(parent) &&
           !isObjectProperty(parent) &&
           !isReturnOrThrowStatement(parent) &&
           parent.type !== "TypeCastExpression" &&
@@ -1240,6 +1246,7 @@ function isDecoratorMemberExpression(node) {
   if (isMemberExpression(node)) {
     return (
       !node.computed &&
+      // @ts-expect-error -- doesn't exists on `MemberExpression`
       !node.optional &&
       node.property.type === "Identifier" &&
       isDecoratorMemberExpression(node.object)
@@ -1259,6 +1266,7 @@ function canDecoratorExpressionUnparenthesized(node) {
   return (
     isDecoratorMemberExpression(node) ||
     (isCallExpression(node) &&
+      // @ts-expect-error -- doesn't exists on `CallExpression`
       !node.optional &&
       isDecoratorMemberExpression(node.callee))
   );

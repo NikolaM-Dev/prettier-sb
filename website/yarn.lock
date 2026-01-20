@@ -1916,24 +1916,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/state@npm:6.5.3, @codemirror/state@npm:^6.0.0, @codemirror/state@npm:^6.4.0, @codemirror/state@npm:^6.5.0":
-  version: 6.5.3
-  resolution: "@codemirror/state@npm:6.5.3"
+"@codemirror/state@npm:6.5.4, @codemirror/state@npm:^6.0.0, @codemirror/state@npm:^6.4.0, @codemirror/state@npm:^6.5.0":
+  version: 6.5.4
+  resolution: "@codemirror/state@npm:6.5.4"
   dependencies:
     "@marijn/find-cluster-break": "npm:^1.0.0"
-  checksum: 10/07dc8e06aa3c78bde36fd584d1e1131a529d244474dd36bffc6ad1033701d6628a02259711692d099b2a482ede015930f20106aa8ebc7b251db6f303bc72caa2
+  checksum: 10/0e1b073282f2ba246692ad0238def660d201a886fcdb8de28360db8d7c9ec34fe904b9187709d70ede4fe4e7cf9a2e1700d26fccf22ce8d8bca68e6cdf456b08
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:6.39.10, @codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0":
-  version: 6.39.10
-  resolution: "@codemirror/view@npm:6.39.10"
+"@codemirror/view@npm:6.39.11, @codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0":
+  version: 6.39.11
+  resolution: "@codemirror/view@npm:6.39.11"
   dependencies:
     "@codemirror/state": "npm:^6.5.0"
     crelt: "npm:^1.0.6"
     style-mod: "npm:^4.1.0"
     w3c-keyname: "npm:^2.2.4"
-  checksum: 10/6fcfb45876c4ba5b25beecd55b55bdc4331a76193f66bfbc1f8793d0f308d7864430a75c6357d6b336862fbc5bcb29f387fb9cde8e2ac2ed513c5607a4d66b0b
+  checksum: 10/691825e783a1ac720411f59fface596fe1ba0fbf0344ed61af84937c7dd4337298b1a91fbff93cee076dc1b1c5c6f7bd73b8660fa417fb484f157946ecac9986
   languageName: node
   linkType: hard
 
@@ -8318,10 +8318,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"github-buttons@npm:2.29.1":
-  version: 2.29.1
-  resolution: "github-buttons@npm:2.29.1"
-  checksum: 10/ca7c2ad1714e68041f41d09d5ce5f35219ff5a54490158586b112e193ccaa557bb0a8bee95de8fc054879d08cc8b4985bde88dde01d8d5ca4208dd6b938615c1
+"github-buttons@npm:2.30.0":
+  version: 2.30.0
+  resolution: "github-buttons@npm:2.30.0"
+  checksum: 10/1bf0a31ccdb769fb0b5459b9c99f024da2d57a38aafa83b5090d2ccde685410e5e98ca2a2ce63d054f20bf84034bcb78892895e777d01b5f87560a801dc4b124
   languageName: node
   linkType: hard
 
@@ -12446,11 +12446,11 @@ __metadata:
   linkType: hard
 
 "qs@npm:~6.14.0":
-  version: 6.14.0
-  resolution: "qs@npm:6.14.0"
+  version: 6.14.1
+  resolution: "qs@npm:6.14.1"
   dependencies:
     side-channel: "npm:^1.1.0"
-  checksum: 10/a60e49bbd51c935a8a4759e7505677b122e23bf392d6535b8fc31c1e447acba2c901235ecb192764013cd2781723dc1f61978b5fdd93cc31d7043d31cdc01974
+  checksum: 10/34b5ab00a910df432d55180ef39c1d1375e550f098b5ec153b41787f1a6a6d7e5f9495593c3b112b77dbc6709d0ae18e55b82847a4c2bbbb0de1e8ccbb1794c5
   languageName: node
   linkType: hard
 
@@ -13221,8 +13221,8 @@ __metadata:
     "@codemirror/language": "npm:6.12.1"
     "@codemirror/language-data": "npm:6.5.2"
     "@codemirror/lint": "npm:6.9.2"
-    "@codemirror/state": "npm:6.5.3"
-    "@codemirror/view": "npm:6.39.10"
+    "@codemirror/state": "npm:6.5.4"
+    "@codemirror/view": "npm:6.39.11"
     "@docusaurus/core": "npm:3.9.2"
     "@docusaurus/faster": "npm:3.9.2"
     "@docusaurus/module-type-aliases": "npm:3.9.2"
@@ -13239,7 +13239,7 @@ __metadata:
     clsx: "npm:2.1.1"
     cm6-graphql: "npm:0.2.1"
     concurrently: "npm:9.2.1"
-    github-buttons: "npm:2.29.1"
+    github-buttons: "npm:2.30.0"
     graphql: "npm:16.12.0"
     lz-string: "npm:1.5.0"
     package-dependencies-tree: "npm:0.0.1"
@@ -14069,15 +14069,15 @@ __metadata:
   linkType: hard
 
 "tar@npm:^7.5.2":
-  version: 7.5.2
-  resolution: "tar@npm:7.5.2"
+  version: 7.5.3
+  resolution: "tar@npm:7.5.3"
   dependencies:
     "@isaacs/fs-minipass": "npm:^4.0.0"
     chownr: "npm:^3.0.0"
     minipass: "npm:^7.1.2"
     minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
-  checksum: 10/dbad9c9a07863cd1bdf8801d563b3280aa7dd0f4a6cead779ff7516d148dc80b4c04639ba732d47f91f04002f57e8c3c6573a717d649daecaac74ce71daa7ad3
+  checksum: 10/106b85ef799eb9c2a5d91278b14cdd9486551a5d889a7d88f719513dd7e04b7bd77417df27d3fcb43ef54dda5acc15730e627259164ce245dd968d86fd6ee517
   languageName: node
   linkType: hard
 

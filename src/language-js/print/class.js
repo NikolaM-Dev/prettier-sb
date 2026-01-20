@@ -19,6 +19,7 @@ import {
   createTypeCheckFunction,
   hasComment,
   isMemberExpression,
+  stripChainElementWrappers,
 } from "../utilities/index.js";
 import { printAssignment } from "./assignment.js";
 import { printClassMemberDecorators } from "./decorators.js";
@@ -187,7 +188,10 @@ function shouldPrintClassInGroupModeWithoutCache(path) {
       return false;
     }
 
-    return !node.superTypeArguments && isMemberExpression(node.superClass);
+    return (
+      !node.superTypeArguments &&
+      isMemberExpression(stripChainElementWrappers(node.superClass))
+    );
   }
 
   const heritage =

@@ -192,8 +192,6 @@ const allowedReasonCodes = new Set([
   "StrictFunction",
   "ForInOfLoopInitializer",
 
-  "ConstructorHasTypeParameters",
-
   "DecoratorExportClass",
   "ParamDupe",
   "InvalidDecimal",
@@ -204,22 +202,12 @@ const allowedReasonCodes = new Set([
   "ModuleAttributesWithDuplicateKeys",
   "InvalidEscapeSequenceTemplate",
   "NonAbstractClassHasAbstractMethod",
-  "OptionalTypeBeforeRequired",
   "PatternIsOptional",
   "DeclareClassFieldHasInitializer",
 
   "VarRedeclaration",
   "InvalidPrivateFieldResolution",
   "DuplicateExport",
-
-  /*
-  Legacy syntax
-
-  ```js
-  import json from "./json.json" assert {type: "json"};
-  ```
-  */
-  "ImportAttributesUseAssert",
 
   /*
   Allow const without initializer in `.d.ts` files

@@ -9,16 +9,15 @@ import hasNewline from "../../utilities/has-newline.js";
 import hasNewlineInRange from "../../utilities/has-newline-in-range.js";
 import isNonEmptyArray from "../../utilities/is-non-empty-array.js";
 import { locEnd, locStart } from "../loc.js";
-import { isInsideCallExpressionParentheses } from "../utilities/call-expression-parentheses.js";
+import { isInsideCallOrNewExpressionParentheses } from "../utilities/call-or-new-expression-parentheses.js";
 import getTextWithoutComments from "../utilities/get-text-without-comments.js";
 import {
   createTypeCheckFunction,
   getCallArguments,
-  getComponentParameters,
   getFunctionParameters,
   isBinaryCastExpression,
-  isCallExpression,
   isCallLikeExpression,
+  isCallOrNewExpression,
   isConditionalType,
   isIntersectionType,
   isMemberExpression,
@@ -45,6 +44,7 @@ import isTypeCastComment from "../utilities/is-type-cast-comment.js";
   options: any,
   ast: NodeMap["File"] | NodeMap["Program"],
   isLastComment: boolean,
+  placement: "ownLine" | "endOfLine" | "remaining"
 }} CommentContext
 */
 
@@ -67,7 +67,6 @@ function handleOwnLineComment(context) {
     handleIgnoreComments,
     handleConditionalExpressionComments,
     handleLastFunctionParameterComments,
-    handleLastComponentArgComments,
     handleMemberExpressionComments,
     handleIfStatementComments,
     handleWhileComments,
@@ -81,7 +80,6 @@ function handleOwnLineComment(context) {
     handleAssignmentPatternComments,
     handleMethodNameComments,
     handleLabeledStatementComments,
-    handleBreakAndContinueStatementComments,
     handleNestedConditionalExpressionComments,
     handleCommentsInDestructuringPattern,
     handleTSMappedTypeComments,
@@ -109,7 +107,6 @@ function handleEndOfLineComment(context) {
     handlePropertyComments,
     handleOnlyComments,
     handleVariableDeclaratorComments,
-    handleBreakAndContinueStatementComments,
     handleSwitchDefaultCaseComments,
     handleLastUnionElementInExpression,
     handleLastBinaryOperatorOperand,
@@ -134,7 +131,6 @@ function handleRemainingComment(context) {
     handleOnlyComments,
     handleCommentAfterArrowParams,
     handleFunctionNameComments,
-    handleBreakAndContinueStatementComments,
     handleTSFunctionTrailingComments,
     handleBinaryCastExpressionComment,
   ].some((fn) => fn(context));
@@ -239,6 +235,14 @@ function handleIfStatementComments({
       text,
       locEnd(enclosingNode.consequent),
     );
+    const isElseToken =
+      maybeElseTokenIndex !== false &&
+      text.slice(maybeElseTokenIndex, maybeElseTokenIndex + 4) === "else";
+
+    if (!isElseToken) {
+      addTrailingComment(precedingNode, comment);
+      return true;
+    }
 
     // if comment is positioned between the `else` token and its body
     if (
@@ -284,11 +288,6 @@ function handleIfStatementComments({
 
   if (followingNode.type === "BlockStatement") {
     addBlockStatementFirstComment(followingNode, comment);
-    return true;
-  }
-
-  if (followingNode.type === "IfStatement") {
-    addBlockOrNotComment(followingNode.consequent, comment);
     return true;
   }
 
@@ -542,6 +541,7 @@ const isPropertyLikeNode = createTypeCheckFunction([
   "TSParameterProperty",
 ]);
 function handleMethodNameComments({
+  placement,
   comment,
   precedingNode,
   enclosingNode,
@@ -573,7 +573,7 @@ function handleMethodNameComments({
   if (
     precedingNode?.type === "Decorator" &&
     isPropertyLikeNode(enclosingNode) &&
-    (isLineComment(comment) || comment.placement === "ownLine")
+    (isLineComment(comment) || placement === "ownLine")
   ) {
     addTrailingComment(precedingNode, comment);
     return true;
@@ -666,20 +666,12 @@ function handleCommentInEmptyParens({ comment, enclosingNode, options }) {
     return true;
   }
 
-  if (
-    isFlowComponent(enclosingNode) &&
-    getComponentParameters(enclosingNode).length === 0 &&
-    isInArgumentOrParameterParentheses(enclosingNode, comment, options)
-  ) {
-    addDanglingComment(enclosingNode, comment);
-    return true;
-  }
-
   // Only add dangling comments to fix the case when no params are present,
   // i.e. a function without any argument.
 
   const functionNode =
     isRealFunctionLikeNode(enclosingNode) ||
+    isFlowComponent(enclosingNode) ||
     enclosingNode.type === "HookTypeAnnotation"
       ? enclosingNode
       : enclosingNode.type === "MethodDefinition" ||
@@ -694,39 +686,6 @@ function handleCommentInEmptyParens({ comment, enclosingNode, options }) {
     isInArgumentOrParameterParentheses(functionNode, comment, options)
   ) {
     addDanglingComment(functionNode, comment);
-    return true;
-  }
-
-  return false;
-}
-
-function handleLastComponentArgComments({
-  comment,
-  precedingNode,
-  enclosingNode,
-  followingNode,
-  text,
-}) {
-  // "DeclareComponent" and "ComponentTypeAnnotation" definitions
-  if (
-    precedingNode?.type === "ComponentTypeParameter" &&
-    (enclosingNode?.type === "DeclareComponent" ||
-      enclosingNode?.type === "ComponentTypeAnnotation") &&
-    followingNode?.type !== "ComponentTypeParameter"
-  ) {
-    addTrailingComment(precedingNode, comment);
-    return true;
-  }
-
-  // "ComponentParameter" definitions
-  if (
-    (precedingNode?.type === "ComponentParameter" ||
-      precedingNode?.type === "RestElement") &&
-    (enclosingNode?.type === "ComponentDeclaration" ||
-      enclosingNode?.type === "DeclareComponent") &&
-    getNextNonSpaceNonCommentCharacter(text, locEnd(comment)) === ")"
-  ) {
-    addTrailingComment(precedingNode, comment);
     return true;
   }
 
@@ -750,6 +709,17 @@ function handleLastFunctionParameterComments({
     return true;
   }
 
+  // "DeclareComponent" and "ComponentTypeAnnotation" definitions
+  if (
+    precedingNode?.type === "ComponentTypeParameter" &&
+    (enclosingNode?.type === "DeclareComponent" ||
+      enclosingNode?.type === "ComponentTypeAnnotation") &&
+    followingNode?.type !== "ComponentTypeParameter"
+  ) {
+    addTrailingComment(precedingNode, comment);
+    return true;
+  }
+
   // Real functions and TypeScript function type definitions
   if (
     (precedingNode?.type === "Identifier" ||
@@ -759,6 +729,18 @@ function handleLastFunctionParameterComments({
       precedingNode?.type === "RestElement" ||
       precedingNode?.type === "TSParameterProperty") &&
     isRealFunctionLikeNode(enclosingNode) &&
+    getNextNonSpaceNonCommentCharacter(text, locEnd(comment)) === ")"
+  ) {
+    addTrailingComment(precedingNode, comment);
+    return true;
+  }
+
+  // "ComponentParameter" definitions
+  if (
+    (precedingNode?.type === "ComponentParameter" ||
+      precedingNode?.type === "RestElement") &&
+    (enclosingNode?.type === "ComponentDeclaration" ||
+      enclosingNode?.type === "DeclareComponent") &&
     getNextNonSpaceNonCommentCharacter(text, locEnd(comment)) === ")"
   ) {
     addTrailingComment(precedingNode, comment);
@@ -797,18 +779,6 @@ function handleLabeledStatementComments({ comment, enclosingNode }) {
   return false;
 }
 
-function handleBreakAndContinueStatementComments({ comment, enclosingNode }) {
-  if (
-    (enclosingNode?.type === "ContinueStatement" ||
-      enclosingNode?.type === "BreakStatement") &&
-    !enclosingNode.label
-  ) {
-    addTrailingComment(enclosingNode, comment);
-    return true;
-  }
-  return false;
-}
-
 function handleCallExpressionComments({
   comment,
   precedingNode,
@@ -816,10 +786,10 @@ function handleCallExpressionComments({
   options,
 }) {
   if (
-    isCallExpression(enclosingNode) &&
+    isCallOrNewExpression(enclosingNode) &&
     enclosingNode.callee === precedingNode &&
     enclosingNode.arguments.length > 0 &&
-    isInsideCallExpressionParentheses(enclosingNode, comment, options)
+    isInsideCallOrNewExpressionParentheses(enclosingNode, comment, options)
   ) {
     addLeadingComment(enclosingNode.arguments[0], comment);
     return true;
@@ -923,6 +893,7 @@ function handleForComments({ comment, enclosingNode, followingNode }) {
   if (
     (enclosingNode?.type === "ForInStatement" ||
       enclosingNode?.type === "ForOfStatement") &&
+    followingNode &&
     followingNode !== enclosingNode.body
   ) {
     addLeadingComment(enclosingNode, comment);

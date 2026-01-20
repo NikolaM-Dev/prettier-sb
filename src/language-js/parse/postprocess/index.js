@@ -138,7 +138,7 @@ function postprocess(ast, options) {
         // fix unexpected locEnd caused by --no-semi style
         case "VariableDeclaration": {
           const lastDeclaration = node.declarations.at(-1);
-          if (lastDeclaration?.init && text[locEnd(lastDeclaration)] !== ";") {
+          if (lastDeclaration.init && text[locEnd(lastDeclaration)] !== ";") {
             node.range = [locStart(node), locEnd(lastDeclaration)];
           }
           break;
@@ -151,7 +151,9 @@ function postprocess(ast, options) {
         // For hack-style pipeline
         case "TopicReference":
           ast.extra = { ...ast.extra, __isUsingHackPipeline: true };
-          break; // In Flow parser, it doesn't generate union/intersection types for single type
+          break;
+
+        // In Flow parser, it doesn't generate union/intersection types for single type
         case "TSUnionType":
         case "TSIntersectionType":
           if (node.types.length === 1) {
@@ -159,10 +161,9 @@ function postprocess(ast, options) {
           }
           break;
 
-        // https://github.com/facebook/hermes/issues/1712
-        case "ImportExpression":
-          if (parser === "hermes" && node.attributes && !node.options) {
-            node.options = node.attributes;
+        case "ImportDeclaration":
+          if (parser === "hermes" && node.assertions && !node.attributes) {
+            node.attributes = node.assertions;
           }
           break;
 
@@ -181,15 +182,6 @@ function postprocess(ast, options) {
           // We remove unneeded parens around same-operator LogicalExpressions
           if (isUnbalancedLogicalTree(node)) {
             return rebalanceLogicalTree(node);
-          }
-          break;
-
-        // https://github.com/babel/babel/issues/17506
-        // It's possible to have parenthesized `argument`, need do this in `onLeave`
-        case "TSImportType":
-          if (!node.source && node.argument.type === "TSLiteralType") {
-            node.source = node.argument.literal;
-            delete node.argument;
           }
           break;
       }

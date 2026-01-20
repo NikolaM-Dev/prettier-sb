@@ -18,12 +18,17 @@ import {
   isArrayExpression,
   isBinaryCastExpression,
   isBinaryish,
+  isCallExpression,
+  isCallLikeExpression,
+  isCallOrNewExpression,
+  isChainElementWrapper,
   isConditionalType,
   isExportDeclaration,
   isFunctionOrArrowExpression,
   isIntersectionType,
   isJsxElement,
   isLiteral,
+  isMemberExpression,
   isObjectExpression,
   isObjectType,
   isReturnOrThrowStatement,
@@ -64,8 +69,7 @@ function hasNakedLeftSide(node) {
     node.type === "BindExpression" ||
     (node.type === "UpdateExpression" && !node.prefix) ||
     isBinaryCastExpression(node) ||
-    node.type === "TSNonNullExpression" ||
-    node.type === "ChainExpression"
+    isChainElementWrapper(node)
   );
 }
 
@@ -365,26 +369,6 @@ function isTestCall(node, parent) {
 }
 
 /**
-@template {ReturnType<createTypeCheckFunction>} TypeCheckFunction
-@param {TypeCheckFunction} fn
-@return {(node: Node) => boolean} */
-const skipChainExpression = (fn) => (node) => {
-  if (node?.type === "ChainExpression") {
-    node = node.expression;
-  }
-
-  return fn(node);
-};
-
-const isCallExpression = skipChainExpression(
-  createTypeCheckFunction(["CallExpression", "OptionalCallExpression"]),
-);
-
-const isMemberExpression = skipChainExpression(
-  createTypeCheckFunction(["MemberExpression", "OptionalMemberExpression"]),
-);
-
-/**
  * Attempts to gauge the rough complexity of a node, for example
  * to detect deeply-nested booleans, call expressions with lots of arguments, etc.
  */
@@ -523,16 +507,19 @@ function isFunctionCompositionArgs(args) {
     return false;
   }
   let count = 0;
-  for (const arg of args) {
+  for (let arg of args) {
     if (isFunctionOrArrowExpression(arg)) {
       count += 1;
       if (count > 1) {
         return true;
       }
-    } else if (isCallExpression(arg)) {
-      for (const childArg of getCallArguments(arg)) {
-        if (isFunctionOrArrowExpression(childArg)) {
-          return true;
+    } else {
+      arg = stripChainElementWrappers(arg);
+      if (isCallExpression(arg)) {
+        for (const childArg of getCallArguments(arg)) {
+          if (isFunctionOrArrowExpression(childArg)) {
+            return true;
+          }
         }
       }
     }
@@ -573,11 +560,9 @@ function isSimpleCallArgument(node, depth = 2) {
     return false;
   }
 
-  if (node.type === "ChainExpression" || node.type === "TSNonNullExpression") {
-    return isSimpleCallArgument(node.expression, depth);
-  }
-
   const isChildSimple = (child) => isSimpleCallArgument(child, depth - 1);
+
+  node = stripChainElementWrappers(node);
 
   if (isRegExpLiteral(node)) {
     return getStringWidth(node.pattern ?? node.regex.pattern) <= 5;
@@ -704,9 +689,9 @@ function startsWithNoLookaheadToken(node, predicate) {
     case "SequenceExpression":
       return startsWithNoLookaheadToken(node.expressions[0], predicate);
     case "ChainExpression":
+    case "TSNonNullExpression":
     case "TSSatisfiesExpression":
     case "TSAsExpression":
-    case "TSNonNullExpression":
     case "AsExpression":
     case "AsConstExpression":
     case "SatisfiesExpression":
@@ -849,39 +834,10 @@ function iterateFunctionParametersPath(path, iteratee) {
   }
 }
 
-const componentParametersCache = new WeakMap();
-function getComponentParameters(node) {
-  if (componentParametersCache.has(node)) {
-    return componentParametersCache.get(node);
-  }
-
-  const parameters = [...node.params];
-  if (node.rest) {
-    parameters.push(node.rest);
-  }
-
-  componentParametersCache.set(node, parameters);
-  return parameters;
-}
-
-function iterateComponentParametersPath(path, iteratee) {
-  const { node } = path;
-  let index = 0;
-  const callback = () => iteratee(path, index++);
-  path.each(callback, "params");
-  if (node.rest) {
-    path.call(callback, "rest");
-  }
-}
-
 const callArgumentsCache = new WeakMap();
 function getCallArguments(node) {
   if (callArgumentsCache.has(node)) {
     return callArgumentsCache.get(node);
-  }
-
-  if (node.type === "ChainExpression") {
-    return getCallArguments(node.expression);
   }
 
   let args;
@@ -904,13 +860,6 @@ function getCallArguments(node) {
 function iterateCallArgumentsPath(path, iteratee) {
   const { node } = path;
 
-  if (node.type === "ChainExpression") {
-    return path.call(
-      () => iterateCallArgumentsPath(path, iteratee),
-      "expression",
-    );
-  }
-
   if (node.type === "ImportExpression" || node.type === "TSImportType") {
     path.call(() => iteratee(path, 0), "source");
 
@@ -925,30 +874,24 @@ function iterateCallArgumentsPath(path, iteratee) {
 }
 
 function getCallArgumentSelector(node, index) {
-  const selectors = [];
-  if (node.type === "ChainExpression") {
-    node = node.expression;
-    selectors.push("expression");
-  }
-
   if (node.type === "ImportExpression" || node.type === "TSImportType") {
     if (index === 0 || index === (node.options ? -2 : -1)) {
-      return [...selectors, "source"];
+      return ["source"];
     }
     if (node.options && (index === 1 || index === -1)) {
-      return [...selectors, "options"];
+      return ["options"];
     }
     throw new RangeError("Invalid argument index");
   } else if (node.type === "TSExternalModuleReference") {
     if (index === 0 || index === -1) {
-      return [...selectors, "expression"];
+      return ["expression"];
     }
   } else {
     if (index < 0) {
       index = node.arguments.length + index;
     }
     if (index >= 0 && index < node.arguments.length) {
-      return [...selectors, "arguments", index];
+      return ["arguments", index];
     }
   }
 
@@ -1043,14 +986,6 @@ function getComments(node, flags, fn) {
 const isNextLineEmpty = (node, { originalText }) =>
   isNextLineEmptyAfterIndex(originalText, locEnd(node));
 
-function isCallLikeExpression(node) {
-  return (
-    isCallExpression(node) ||
-    node.type === "NewExpression" ||
-    node.type === "ImportExpression"
-  );
-}
-
 function isObjectProperty(node) {
   return (
     node &&
@@ -1138,13 +1073,24 @@ function isIifeCalleeOrTaggedTemplateExpressionTag(path) {
   );
 }
 
+/**
+@param {Node} node
+@returns {Exclude<Node, NodeMap["ChainExpression"] | NodeMap["TSNonNullExpression"]>}
+*/
+function stripChainElementWrappers(node) {
+  while (isChainElementWrapper(node)) {
+    node = node.expression;
+  }
+
+  return node;
+}
+
 export {
   CommentCheckFlags,
   createTypeCheckFunction,
   getCallArguments,
   getCallArgumentSelector,
   getComments,
-  getComponentParameters,
   getFunctionParameters,
   getLeftSide,
   getLeftSidePathName,
@@ -1163,6 +1109,8 @@ export {
   isBooleanTypeCoercion,
   isCallExpression,
   isCallLikeExpression,
+  isCallOrNewExpression,
+  isChainElementWrapper,
   isConditionalType,
   isExportDeclaration,
   isFlowObjectTypePropertyAFunction,
@@ -1200,13 +1148,13 @@ export {
   isTypeAnnotationAFunction,
   isUnionType,
   iterateCallArgumentsPath,
-  iterateComponentParametersPath,
   iterateFunctionParametersPath,
   needsHardlineAfterDanglingComment,
   shouldFlatten,
   shouldPrintComma,
   shouldUnionTypePrintOwnComments,
   startsWithNoLookaheadToken,
+  stripChainElementWrappers,
 };
 export { default as isMeaningfulEmptyStatement } from "./is-meaningful-empty-statement.js";
 export { default as isNodeMatches } from "./is-node-matches.js";
