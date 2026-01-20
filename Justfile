@@ -5,7 +5,7 @@ default:
 # Build the prettier binary
 build:
     yarn install
-    bun run build
+    bun run build:second-brain
 
 build_watch:
     watchexec -e .ts,.js 'bun run build:second-brain'
