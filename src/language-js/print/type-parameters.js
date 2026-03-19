@@ -1,7 +1,6 @@
 import {
   group,
   hardline,
-  ifBreak,
   indent,
   indentIfBreak,
   join,
@@ -11,16 +10,13 @@ import {
 } from "../../document/index.js";
 import { printDanglingComments } from "../../main/comments/print.js";
 import hasNewline from "../../utilities/has-newline.js";
-import { locEnd } from "../loc.js";
-import {
-  CommentCheckFlags,
-  getFunctionParameters,
-  hasComment,
-  isObjectType,
-  isTestCall,
-  shouldPrintComma,
-} from "../utilities/index.js";
+import { locEnd } from "../location/index.js";
+import { CommentCheckFlags, hasComment } from "../utilities/comments.js";
+import { getFunctionParameters } from "../utilities/function-parameters.js";
+import { isObjectType } from "../utilities/node-types.js";
+import { isTestCall } from "../utilities/test-libraries.js";
 import { isArrowFunctionVariableDeclarator } from "./assignment.js";
+import { printTrailingComma } from "./miscellaneous.js";
 import {
   printTypeAnnotationProperty,
   shouldHugType,
@@ -111,9 +107,7 @@ function printTypeParameters(path, options, print, paramsKey) {
       ? ""
       : shouldForceTrailingComma(path, options, paramsKey)
         ? ","
-        : shouldPrintComma(options)
-          ? ifBreak(",")
-          : "";
+        : printTrailingComma(options);
 
   return group([
     "<",

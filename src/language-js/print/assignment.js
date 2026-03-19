@@ -10,24 +10,25 @@ import {
 } from "../../document/index.js";
 import getStringWidth from "../../utilities/get-string-width.js";
 import isNonEmptyArray from "../../utilities/is-non-empty-array.js";
+import { getCallArguments } from "../utilities/call-arguments.js";
+import { hasLeadingOwnLineComment } from "../utilities/has-leading-own-line-comment.js";
+import { isLoneShortArgument } from "../utilities/is-lone-short-argument.js";
+import { isObjectProperty } from "../utilities/is-object-property.js";
 import {
-  getCallArguments,
-  hasLeadingOwnLineComment,
   isBinaryish,
   isBooleanLiteral,
   isCallExpression,
   isChainElementWrapper,
   isIntersectionType,
-  isLoneShortArgument,
   isMemberExpression,
   isNumericLiteral,
-  isObjectProperty,
   isStringLiteral,
   isTypeAlias,
   isUnionType,
-} from "../utilities/index.js";
+} from "../utilities/node-types.js";
 import { shouldInlineLogicalExpression } from "./binaryish.js";
 import { printCallExpression } from "./call-expression.js";
+import { shouldHugUnionType } from "./union-type.js";
 
 /**
  * @import AstPath from "../../common/ast-path.js"
@@ -136,6 +137,7 @@ function chooseLayout(path, options, print, leftDoc, rightPropertyName) {
 
   if (
     isHeadOfLongChain ||
+    (isUnionType(rightNode) && !shouldHugUnionType(rightNode)) ||
     hasLeadingOwnLineComment(options.originalText, rightNode)
   ) {
     return "break-after-operator";

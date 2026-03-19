@@ -10,23 +10,25 @@ import {
 } from "../../document/index.js";
 import { printDanglingComments } from "../../main/comments/print.js";
 import hasNewlineInRange from "../../utilities/has-newline-in-range.js";
-import { locEnd, locStart } from "../loc.js";
+import { locEnd, locStart } from "../location/index.js";
 import needsParentheses from "../parentheses/needs-parentheses.js";
+import { isBlockComment } from "../utilities/comment-types.js";
 import {
   CommentCheckFlags,
   getComments,
   hasComment,
+} from "../utilities/comments.js";
+import { isLoneShortArgument } from "../utilities/is-lone-short-argument.js";
+import { isSimpleExpressionByNodeCount } from "../utilities/is-simple-expression-by-node-count.js";
+import {
   isBinaryCastExpression,
   isCallExpression,
   isChainElementWrapper,
   isConditionalType,
   isJsxElement,
-  isLoneShortArgument,
   isMemberExpression,
   isReturnOrThrowStatement,
-  isSimpleExpressionByNodeCount,
-} from "../utilities/index.js";
-import isBlockComment from "../utilities/is-block-comment.js";
+} from "../utilities/node-types.js";
 import { printTernaryOld } from "./ternary-old.js";
 
 /**

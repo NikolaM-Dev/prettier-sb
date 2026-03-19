@@ -14,22 +14,21 @@ import {
   softline,
 } from "../../document/index.js";
 import { printComments } from "../../main/comments/print.js";
+import { CommentCheckFlags, hasComment } from "../utilities/comments.js";
+import { hasLeadingOwnLineComment } from "../utilities/has-leading-own-line-comment.js";
+import { isBooleanTypeCoercion } from "../utilities/is-boolean-type-coercion.js";
+import { isObjectProperty } from "../utilities/is-object-property.js";
+import { isTypeCastComment } from "../utilities/is-type-cast-comment.js";
 import {
-  CommentCheckFlags,
-  hasComment,
-  hasLeadingOwnLineComment,
   isArrayExpression,
   isBinaryish,
-  isBooleanTypeCoercion,
   isCallOrNewExpression,
   isJsxElement,
   isMemberExpression,
   isObjectExpression,
-  isObjectProperty,
   isReturnOrThrowStatement,
-  shouldFlatten,
-} from "../utilities/index.js";
-import isTypeCastComment from "../utilities/is-type-cast-comment.js";
+} from "../utilities/node-types.js";
+import { shouldFlatten } from "../utilities/should-flatten.js";
 
 /** @import {Doc} from "../../document/index.js" */
 

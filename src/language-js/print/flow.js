@@ -4,12 +4,12 @@ import * as assert from "#universal/assert";
 import { replaceEndOfLine } from "../../document/index.js";
 import printNumber from "../../utilities/print-number.js";
 import printString from "../../utilities/print-string.js";
-import getRaw from "../utilities/get-raw.js";
-import { isMethod } from "../utilities/index.js";
+import { getRaw } from "../utilities/get-raw.js";
 import isFlowKeywordType from "../utilities/is-flow-keyword-type.js";
+import { isMethod } from "../utilities/is-method.js";
 import { printArray } from "./array.js";
 import { printArrayType } from "./array-type.js";
-import { printBinaryCastExpression } from "./cast-expression.js";
+import { printBinaryCastExpression } from "./binary-cast-expression.js";
 import {
   printClass,
   printClassBody,
@@ -31,14 +31,18 @@ import { printDeclareHook, printHookTypeAnnotation } from "./hook.js";
 import { printIndexedAccessType } from "./indexed-access-type.js";
 import { printInferType } from "./infer-type.js";
 import { printIntersectionType } from "./intersection-type.js";
+import { printKey } from "./key.js";
 import { printBigInt } from "./literal.js";
 import { printFlowMappedTypeProperty } from "./mapped-type.js";
 import { printMatch, printMatchCase, printMatchPattern } from "./match.js";
-import { printDeclareToken, printOptionalToken } from "./miscellaneous.js";
+import {
+  printDeclareToken,
+  printOptionalToken,
+  printSemicolon,
+} from "./miscellaneous.js";
 import { printExportDeclaration } from "./module.js";
 import { printObject } from "./object.js";
 import { printOpaqueType } from "./opaque-type.js";
-import { printPropertyKey } from "./property.js";
 import { printSpreadElement } from "./rest-element.js";
 import { printRestType } from "./rest-type.js";
 import { printTernary } from "./ternary.js";
@@ -53,7 +57,7 @@ import { printTypePredicate } from "./type-predicate.js";
 import { printTypeQuery } from "./type-query.js";
 import { printUnionType } from "./union-type.js";
 
-function printFlow(path, options, print) {
+function printFlow(path, options, print, args) {
   const { node } = path;
 
   if (isFlowKeywordType(node)) {
@@ -82,7 +86,7 @@ function printFlow(path, options, print) {
         "function ",
         print("id"),
         print("predicate"),
-        options.semi ? ";" : "",
+        printSemicolon(options),
       ];
     case "DeclareModule":
       return ["declare module ", print("id"), " ", print("body")];
@@ -90,7 +94,7 @@ function printFlow(path, options, print) {
       return [
         "declare module.exports",
         printTypeAnnotationProperty(path, print),
-        options.semi ? ";" : "",
+        printSemicolon(options),
       ];
     case "DeclareNamespace":
       return ["declare namespace ", print("id"), " ", print("body")];
@@ -101,7 +105,7 @@ function printFlow(path, options, print) {
         node.kind ?? "var",
         " ",
         print("id"),
-        options.semi ? ";" : "",
+        printSemicolon(options),
       ];
     case "DeclareExportDeclaration":
     case "DeclareExportAllDeclaration":
@@ -117,7 +121,7 @@ function printFlow(path, options, print) {
     case "IntersectionTypeAnnotation":
       return printIntersectionType(path, options, print);
     case "UnionTypeAnnotation":
-      return printUnionType(path, options, print);
+      return printUnionType(path, options, print, args);
     case "ConditionalTypeAnnotation":
       return printTernary(path, options, print);
     case "InferTypeAnnotation":
@@ -167,7 +171,7 @@ function printFlow(path, options, print) {
     case "EnumBigIntMember":
     case "EnumStringMember":
     case "EnumDefaultedMember":
-      return printEnumMember(path, print);
+      return printEnumMember(path, options, print);
 
     case "FunctionTypeParam": {
       const name = node.name
@@ -243,7 +247,7 @@ function printFlow(path, options, print) {
         modifier,
         node.kind !== "init" ? node.kind + " " : "",
         node.variance ? print("variance") : "",
-        printPropertyKey(path, options, print),
+        printKey(path, options, print),
         printOptionalToken(path),
         isMethod(node) ? "" : ": ",
         print("value"),
@@ -356,7 +360,7 @@ function printFlow(path, options, print) {
       const valueKey = isStatic ? "value" : "defaultValue";
       return [
         isStatic ? "static " : "",
-        printPropertyKey(path, options, print),
+        printKey(path, options, print),
         printTypeAnnotationProperty(path, print),
         node[valueKey] ? [" = ", print(valueKey)] : "",
       ];

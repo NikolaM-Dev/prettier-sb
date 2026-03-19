@@ -55,14 +55,19 @@ function createParseError(error) {
   });
 }
 
-function parse(text) {
-  const ast = flowParser.parse(text, parseOptions);
+function parse(text, options) {
+  const filepath = options?.filepath;
+
+  const ast = flowParser.parse(text, {
+    filename: typeof filepath === "string" ? filepath : "prettier.js.flow",
+    ...parseOptions,
+  });
   const [error] = ast.errors;
   if (error) {
     throw createParseError(error);
   }
 
-  return postprocess(ast, { parser: "flow", text });
+  return postprocess(ast, { text, astType: "flow" });
 }
 
 export const flow = /* @__PURE__ */ createParser(parse);

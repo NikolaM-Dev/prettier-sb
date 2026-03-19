@@ -3,8 +3,7 @@
 exports[`braces.ts format 1`] = `
 ====================================options=====================================
 parsers: ["typescript"]
-printWidth: 80
-                                                                                | printWidth
+                                                      printWidth: 80 (default) |
 =====================================input======================================
 const myFunction2 = (key: string): number =>
   ({
@@ -47,8 +46,7 @@ class a extends ({}!) {}
 exports[`member-chain.ts format 1`] = `
 ====================================options=====================================
 parsers: ["typescript"]
-printWidth: 80
-                                                                                | printWidth
+                                                      printWidth: 80 (default) |
 =====================================input======================================
 const { somePropThatHasAReallyLongName, anotherPropThatHasALongName } = this.props.imReallySureAboutThis!;
 
@@ -85,8 +83,7 @@ xyz.a(/a/!).a(/a/!).a(/a/!);
 exports[`optional-chain.ts format 1`] = `
 ====================================options=====================================
 parsers: ["typescript"]
-printWidth: 80
-                                                                                | printWidth
+                                                      printWidth: 80 (default) |
 =====================================input======================================
 a?.b!.c;
 a?.b!.c.d;
@@ -105,7 +102,9 @@ a?.().b!.c?.c;
 (a?.().b!).c;
 (a?.().b)!.c;
 
-(a?.b)![c?.d!]
+(a?.b)![c?.d!];
+
+(a?.b!!)!!.c;
 
 =====================================output=====================================
 a?.b!.c;
@@ -114,7 +113,7 @@ a?.b.c!.d;
 a!.b?.c;
 a?.b!?.c;
 a?.b!.c?.c;
-(a?.b)!.c;
+(a?.b!).c;
 (a?.b)!.c;
 
 a?.().b!.c;
@@ -122,10 +121,12 @@ a?.().b!.c.d;
 a?.().b.c!.d;
 a?.().b!?.c;
 a?.().b!.c?.c;
-(a?.().b)!.c;
+(a?.().b!).c;
 (a?.().b)!.c;
 
 (a?.b)![c?.d!];
+
+(a?.b!!)!!.c;
 
 ================================================================================
 `;
@@ -133,8 +134,7 @@ a?.().b!.c?.c;
 exports[`parens.ts format 1`] = `
 ====================================options=====================================
 parsers: ["typescript"]
-printWidth: 80
-                                                                                | printWidth
+                                                      printWidth: 80 (default) |
 =====================================input======================================
 (a ? b : c) ![tokenKey];
 (a || b) ![tokenKey];

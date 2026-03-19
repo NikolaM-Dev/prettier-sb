@@ -33,14 +33,10 @@ const excludeVisitorKeys = {
   DeclareOpaqueType: ["impltype"],
 
   // Legacy properties
-  ExportAllDeclaration: ["assertions"],
   ImportDeclaration: ["assertions"],
 
   // Flow node from Babel
   TupleTypeAnnotation: ["types"],
-
-  // Babel, `decorators` are invalid
-  TSDeclareMethod: ["decorators"],
 };
 
 const excludeNodeTypes = [

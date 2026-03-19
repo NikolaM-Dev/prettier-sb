@@ -1,5 +1,5 @@
-import { locEnd, locStart } from "../loc.js";
-import getTextWithoutComments from "./get-text-without-comments.js";
+import { locEnd, locStart } from "../location/index.js";
+import { stripComments } from "./strip-comments.js";
 
 /**
 @import {Node, Comment, NodeMap} from "../types/estree.js"
@@ -13,7 +13,7 @@ import getTextWithoutComments from "./get-text-without-comments.js";
 
 /**
 @param {CallOrNewExpression} callOrNewExpression
-@returns {number | void}
+@returns {number | undefined}
 */
 function getCallOrNewExpressionClosingParenthesisIndex(
   callOrNewExpression,
@@ -36,7 +36,7 @@ function getCallOrNewExpressionClosingParenthesisIndex(
 
 /**
 @param {CallOrNewExpression} callOrNewExpression
-@returns {number | void}
+@returns {number | undefined}
 */
 function getCallOrNewExpressionOpeningParenthesisIndex(
   callOrNewExpression,
@@ -52,11 +52,11 @@ function getCallOrNewExpressionOpeningParenthesisIndex(
     return;
   }
 
+  const text = stripComments(options);
   const start = locEnd(
     callOrNewExpression.typeArguments ?? callOrNewExpression.callee,
   );
-  const text = getTextWithoutComments(options, start, closingParenthesisIndex);
-  const openingParenthesisIndex = text.indexOf("(");
+  const openingParenthesisIndex = text.indexOf("(", start);
 
   /* c8 ignore next 6 */
   if (openingParenthesisIndex === -1) {
@@ -68,7 +68,7 @@ function getCallOrNewExpressionOpeningParenthesisIndex(
     return;
   }
 
-  return start + openingParenthesisIndex;
+  return openingParenthesisIndex;
 }
 
 /**

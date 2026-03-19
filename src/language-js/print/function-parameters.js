@@ -2,7 +2,6 @@ import { ArgExpansionBailout } from "../../common/errors.js";
 import {
   group,
   hardline,
-  ifBreak,
   indent,
   line,
   removeLines,
@@ -10,22 +9,26 @@ import {
   willBreak,
 } from "../../document/index.js";
 import isNonEmptyArray from "../../utilities/is-non-empty-array.js";
+import { hasComment } from "../utilities/comments.js";
 import {
   getFunctionParameters,
-  hasComment,
   hasRestParameter,
+  iterateFunctionParametersPath,
+} from "../utilities/function-parameters.js";
+import { isFlowObjectTypePropertyAFunction } from "../utilities/is-flow-object-type-property-a-function.js";
+import { isNextLineEmpty } from "../utilities/is-next-line-empty.js";
+import { isSimpleType } from "../utilities/is-simple-type.js";
+import { isTypeAnnotationAFunction } from "../utilities/is-type-annotation-a-function.js";
+import {
   isArrayExpression,
-  isFlowObjectTypePropertyAFunction,
-  isNextLineEmpty,
   isObjectExpression,
   isObjectType,
-  isSimpleType,
-  isTestCall,
-  isTypeAnnotationAFunction,
-  iterateFunctionParametersPath,
-  shouldPrintComma,
-} from "../utilities/index.js";
-import { printDanglingCommentsInList } from "./miscellaneous.js";
+} from "../utilities/node-types.js";
+import { isTestCall } from "../utilities/test-libraries.js";
+import {
+  printDanglingCommentsInList,
+  printTrailingComma,
+} from "./miscellaneous.js";
 
 /** @import AstPath from "../../common/ast-path.js" */
 
@@ -182,11 +185,7 @@ function printFunctionParameters(
     typeParametersDoc,
     "(",
     indent([softline, ...printed]),
-    ifBreak(
-      !hasRestParameter(functionNode) && shouldPrintComma(options, "all")
-        ? ","
-        : "",
-    ),
+    !hasRestParameter(functionNode) ? printTrailingComma(options, "all") : "",
     softline,
     ")",
   ];

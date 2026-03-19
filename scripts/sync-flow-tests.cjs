@@ -7,7 +7,7 @@ const fastGlob = require("fast-glob");
 
 const DEFAULT_SPEC_CONTENT = "runFormatTest(import.meta);\n";
 const SPEC_FILE_NAME = "format.test.js";
-const FLOW_TESTS_DIR = path.join(__dirname, "../tests/format/flow-repo");
+const FLOW_TESTS_DIR = path.join(__dirname, "../tests/format/flow/flow-repo");
 
 function tryParse(file, content) {
   // Keep this sync with `/src/language-js/parse/flow.js`
@@ -89,7 +89,7 @@ function run(argv) {
   }
 
   const syncDir = argv[0];
-  let skipped = [];
+  let skipped;
 
   try {
     skipped = syncTests(syncDir);

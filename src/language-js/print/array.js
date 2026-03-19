@@ -12,17 +12,16 @@ import hasNewline from "../../utilities/has-newline.js";
 import isNextLineEmptyAfterIndex from "../../utilities/is-next-line-empty.js";
 import skipInlineComment from "../../utilities/skip-inline-comment.js";
 import skipTrailingComment from "../../utilities/skip-trailing-comment.js";
-import { locEnd, locStart } from "../loc.js";
+import { locEnd, locStart } from "../location/index.js";
+import { CommentCheckFlags, hasComment } from "../utilities/comments.js";
+import { isSignedNumericLiteral } from "../utilities/is-signed-numeric-literal.js";
 import {
-  CommentCheckFlags,
-  hasComment,
   isArrayExpression,
   isNumericLiteral,
   isObjectExpression,
-  isSignedNumericLiteral,
   isTupleType,
-  shouldPrintComma,
-} from "../utilities/index.js";
+} from "../utilities/node-types.js";
+import { shouldPrintTrailingComma } from "../utilities/should-print-trailing-comma.js";
 import {
   printDanglingCommentsInList,
   printOptionalToken,
@@ -93,7 +92,7 @@ function printArray(path, options, print) {
       ? ""
       : needsForcedTrailingComma
         ? ","
-        : !shouldPrintComma(options)
+        : !shouldPrintTrailingComma(options)
           ? ""
           : shouldUseConciseFormatting
             ? ifBreak(",", "", { groupId })
@@ -168,9 +167,8 @@ function isLineAfterElementEmpty({ node }, { originalText: text }) {
       break;
     }
 
-    currentIdx = skipInlineComment(
-      text,
-      skipTrailingComment(text, currentIdx + 1),
+    currentIdx = /** @type {number} */ (
+      skipInlineComment(text, skipTrailingComment(text, currentIdx + 1))
     );
   }
 

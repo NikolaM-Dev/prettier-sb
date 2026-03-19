@@ -14,16 +14,18 @@ import {
 import getIndentSize from "../../utilities/get-indent-size.js";
 import getStringWidth from "../../utilities/get-string-width.js";
 import hasNewlineInRange from "../../utilities/has-newline-in-range.js";
-import { locEnd, locStart } from "../loc.js";
+import { locEnd, locStart } from "../location/index.js";
 import {
   CommentCheckFlags,
   getComments,
   hasComment,
+} from "../utilities/comments.js";
+import {
   isBinaryCastExpression,
   isBinaryish,
   isMemberExpression,
-  stripChainElementWrappers,
-} from "../utilities/index.js";
+} from "../utilities/node-types.js";
+import { stripChainElementWrappers } from "../utilities/strip-chain-element-wrappers.js";
 
 /**
  * @import {Doc} from "../../document/index.js"

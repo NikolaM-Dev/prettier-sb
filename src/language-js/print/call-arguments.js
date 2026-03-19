@@ -4,39 +4,41 @@ import {
   conditionalGroup,
   group,
   hardline,
-  ifBreak,
   indent,
   line,
   softline,
   willBreak,
 } from "../../document/index.js";
 import {
-  CommentCheckFlags,
   getCallArguments,
   getCallArgumentSelector,
-  getFunctionParameters,
-  hasComment,
+  iterateCallArgumentsPath,
+} from "../utilities/call-arguments.js";
+import { CommentCheckFlags, hasComment } from "../utilities/comments.js";
+import { getFunctionParameters } from "../utilities/function-parameters.js";
+import { isFunctionCompositionArguments } from "../utilities/is-function-composition-arguments.js";
+import { isLongCurriedCallExpression } from "../utilities/is-long-curried-call-expression.js";
+import { isNextLineEmpty } from "../utilities/is-next-line-empty.js";
+import { isObjectProperty } from "../utilities/is-object-property.js";
+import { isSimpleCallArgument } from "../utilities/is-simple-call-argument.js";
+import { isSimpleType } from "../utilities/is-simple-type.js";
+import {
   isArrayExpression,
   isBinaryCastExpression,
   isBinaryish,
   isCallExpression,
   isCallLikeExpression,
-  isFunctionCompositionArgs,
   isJsxElement,
-  isLongCurriedCallExpression,
-  isNextLineEmpty,
   isObjectExpression,
-  isObjectProperty,
   isRegExpLiteral,
-  isSimpleCallArgument,
-  isSimpleType,
   isStringLiteral,
-  iterateCallArgumentsPath,
-  shouldPrintComma,
-  stripChainElementWrappers,
-} from "../utilities/index.js";
+} from "../utilities/node-types.js";
+import { stripChainElementWrappers } from "../utilities/strip-chain-element-wrappers.js";
 import { isConciselyPrintedArray } from "./array.js";
-import { printDanglingCommentsInList } from "./miscellaneous.js";
+import {
+  printDanglingCommentsInList,
+  printTrailingComma,
+} from "./miscellaneous.js";
 
 /*
 - `NewExpression`
@@ -88,27 +90,26 @@ function printCallArguments(path, options, print) {
     printedArguments.push(argDoc);
   });
 
-  const maybeTrailingComma =
+  const trailingComma =
     // Angular does not allow trailing comma
-    !options.parser.startsWith("__ng_") &&
+    path.root.type !== "NGRoot" &&
     // Dynamic imports cannot have trailing commas
     node.type !== "ImportExpression" &&
     node.type !== "TSImportType" &&
-    node.type !== "TSExternalModuleReference" &&
-    shouldPrintComma(options, "all")
-      ? ","
+    node.type !== "TSExternalModuleReference"
+      ? printTrailingComma(options, "all")
       : "";
 
   function allArgsBrokenOut() {
     return group(
-      ["(", indent([line, ...printedArguments]), maybeTrailingComma, line, ")"],
+      ["(", indent([line, ...printedArguments]), trailingComma, line, ")"],
       { shouldBreak: true },
     );
   }
 
   if (
     anyArgEmptyLine ||
-    (path.parent.type !== "Decorator" && isFunctionCompositionArgs(args))
+    (path.parent.type !== "Decorator" && isFunctionCompositionArguments(args))
   ) {
     return allArgsBrokenOut();
   }
@@ -186,7 +187,7 @@ function printCallArguments(path, options, print) {
   const contents = [
     "(",
     indent([softline, ...printedArguments]),
-    ifBreak(maybeTrailingComma),
+    trailingComma,
     softline,
     ")",
   ];

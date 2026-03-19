@@ -1,4 +1,16 @@
-import createTypeCheckFunction from "./create-type-check-function.js";
+import { createTypeCheckFunction } from "./create-type-check-function.js";
+
+/**
+@import {
+  Node,
+  NodeMap,
+  Comment,
+  NumericLiteral,
+  StringLiteral,
+  RegExpLiteral,
+  BigIntLiteral,
+} from "../types/estree.js";
+*/
 
 export const isBinaryCastExpression = createTypeCheckFunction([
   // TS
@@ -8,6 +20,11 @@ export const isBinaryCastExpression = createTypeCheckFunction([
   "AsExpression",
   "AsConstExpression",
   "SatisfiesExpression",
+]);
+
+export const isSatisfiesExpression = createTypeCheckFunction([
+  "SatisfiesExpression",
+  "TSSatisfiesExpression",
 ]);
 
 export const isUnionType = createTypeCheckFunction([
@@ -114,3 +131,15 @@ export const isChainElementWrapper = createTypeCheckFunction([
   "ChainExpression",
   "TSNonNullExpression",
 ]);
+
+export const isArrayType = createTypeCheckFunction([
+  "TSArrayType",
+  "ArrayTypeAnnotation",
+]);
+
+export const isTypeParameterInstantiation = createTypeCheckFunction([
+  "TSTypeParameterInstantiation",
+  "TypeParameterInstantiation",
+]);
+
+export * from "./literal.js";

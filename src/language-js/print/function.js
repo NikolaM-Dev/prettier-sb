@@ -1,20 +1,17 @@
 import * as assert from "#universal/assert";
 import { group } from "../../document/index.js";
-import {
-  CommentCheckFlags,
-  getCallArguments,
-  getFunctionParameters,
-  hasComment,
-  isCallExpression,
-  isMethod,
-} from "../utilities/index.js";
+import { getCallArguments } from "../utilities/call-arguments.js";
+import { CommentCheckFlags, hasComment } from "../utilities/comments.js";
+import { getFunctionParameters } from "../utilities/function-parameters.js";
+import { isMethod } from "../utilities/is-method.js";
+import { isCallExpression } from "../utilities/node-types.js";
 import {
   printFunctionParameters,
   shouldBreakFunctionParameters,
   shouldGroupFunctionParameters,
 } from "./function-parameters.js";
-import { printDeclareToken } from "./miscellaneous.js";
-import { printPropertyKey } from "./property.js";
+import { printKey } from "./key.js";
+import { printDeclareToken, printSemicolon } from "./miscellaneous.js";
 import { printTypeAnnotationProperty } from "./type-annotation.js";
 
 /**
@@ -87,9 +84,11 @@ function printFunction(path, options, print, args) {
       shouldGroupParameters ? group(parametersDoc) : parametersDoc,
       returnTypeDoc,
     ]),
-    node.body ? " " : "",
-    print("body"),
-    options.semi && (node.declare || !node.body) ? ";" : "",
+    node.body
+      ? [" ", print("body")]
+      : // The semicolon not always needed,
+        // but prevent block statement after been parsed as body
+        ";",
   ];
 }
 
@@ -128,7 +127,7 @@ function printMethod(path, options, print) {
   }
 
   parts.push(
-    printPropertyKey(path, options, print),
+    printKey(path, options, print),
     node.optional ? "?" : "",
     node === value ? printMethodValue(path, options, print) : print("value"),
   );
@@ -171,7 +170,7 @@ function printMethodValue(path, options, print) {
   if (node.body) {
     parts.push(" ", print("body"));
   } else {
-    parts.push(options.semi ? ";" : "");
+    parts.push(printSemicolon(options));
   }
 
   return parts;
