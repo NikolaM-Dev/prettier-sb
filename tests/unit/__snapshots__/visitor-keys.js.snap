@@ -246,6 +246,7 @@ exports[`visitor keys estree 1`] = `
     "typeParameters",
   ],
   "DeclareVariable": [
+    "declarations",
     "id",
   ],
   "DeclaredPredicate": [
@@ -273,6 +274,9 @@ exports[`visitor keys estree 1`] = `
   "EnumBigIntMember": [
     "id",
     "init",
+  ],
+  "EnumBody": [
+    "members",
   ],
   "EnumBooleanBody": [
     "members",
