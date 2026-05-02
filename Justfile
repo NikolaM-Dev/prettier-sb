@@ -22,3 +22,4 @@ test:
 update:
     git switch main
     git pull upstream main
+    yarn install
