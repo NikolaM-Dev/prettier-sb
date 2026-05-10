@@ -66,3 +66,18 @@
   typesetting industry.
 - [_] Underscore Lorem Ipsum is simply dummy text of the printing and
   typesetting industry.
+
+## 🔴 P1
+
+- [-] Add readline support to obsidian via `.obsidian.vimrc` ➕ 2026-05-06 ❌
+  2026-05-06 **Why?** The Vimrc Support plugin doesn't support insert mode
+  keymaps
+- [ ] Add readline support to obsidian via `.obsidian.vimrc` ➕ 2026-05-06 ❌
+  2026-05-06 **Why?** The Vimrc Support plugin doesn't support insert mode
+  keymaps
+- [x] Add readline support to obsidian via `.obsidian.vimrc` ➕ 2026-05-06 ❌
+  2026-05-06 **Why?** The Vimrc Support plugin doesn't support insert mode
+  keymaps
+- [-] Add readline support to obsidian via `.obsidian.vimrc` ➕ 2026-05-06 ❌ 2026-05-06 **Why?** The Vimrc Support plugin doesn't support insert mode keymaps
+- [ ] Add readline support to obsidian via `.obsidian.vimrc` ➕ 2026-05-06 ❌ 2026-05-06 **Why?** The Vimrc Support plugin doesn't support insert mode keymaps
+- [x] Add readline support to obsidian via `.obsidian.vimrc` ➕ 2026-05-06 ❌ 2026-05-06 **Why?** The Vimrc Support plugin doesn't support insert mode keymaps
