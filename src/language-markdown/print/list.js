@@ -36,7 +36,7 @@ function printList(path, options, print) {
       // Don't wrap checklist since I'm using [Tasks Plugin](https://publish.obsidian.md/tasks/Introduction)
       if (
         childNode.type === "listItem" &&
-        typeof childNode.checked === "boolean"
+        childNode.checked != null
       ) {
         options.proseWrap = "never";
       }
@@ -101,7 +101,30 @@ function printList(path, options, print) {
 
 function printListItem(path, options, print, listPrefix) {
   const { node } = path;
-  const prefix = node.checked === null ? "" : node.checked ? "[x] " : "[ ] ";
+  const checkedToPrefix = {
+    true: "[x]",
+    false: "[ ]",
+    "-": "[-]",
+    "/": "[/]",
+    "<": "[<]",
+    ">": "[>]",
+    "?": "[?]",
+    "!": "[!]",
+    "~": "[~]",
+    p: "[p]",
+    i: "[i]",
+    b: "[b]",
+    r: "[r]",
+    c: "[c]",
+    w: "[w]",
+    u: "[u]",
+    l: "[l]",
+    "*": "[*]",
+  };
+  const prefix =
+    node.checked === null
+      ? ""
+      : (checkedToPrefix[node.checked] || `[${node.checked}]`) + " ";
   return [
     prefix,
     printChildren(path, options, print, {
@@ -209,7 +232,30 @@ function printListLegacy(path, options, print) {
 
 function printListItemLegacy(path, options, print, listPrefix) {
   const { node } = path;
-  const prefix = node.checked === null ? "" : node.checked ? "[x] " : "[ ] ";
+  const checkedToPrefix = {
+    true: "[x]",
+    false: "[ ]",
+    "-": "[-]",
+    "/": "[/]",
+    "<": "[<]",
+    ">": "[>]",
+    "?": "[?]",
+    "!": "[!]",
+    "~": "[~]",
+    p: "[p]",
+    i: "[i]",
+    b: "[b]",
+    r: "[r]",
+    c: "[c]",
+    w: "[w]",
+    u: "[u]",
+    l: "[l]",
+    "*": "[*]",
+  };
+  const prefix =
+    node.checked === null
+      ? ""
+      : (checkedToPrefix[node.checked] || `[${node.checked}]`) + " ";
   return [
     prefix,
     printChildren(path, options, print, {

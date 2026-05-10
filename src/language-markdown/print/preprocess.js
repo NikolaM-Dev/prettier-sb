@@ -64,14 +64,21 @@ function restoreUnescapedCharacter(ast, options) {
 }
 
 function addRawToText(ast, options) {
-  return mapAst(ast, (node) => {
+  return mapAst(ast, (node, index, parentStack) => {
     if (node.type === "text") {
-      // https://github.com/remarkjs/remark-gfm/issues/16
-      node.raw = options.originalText.slice(
-        node.position.start.offset,
-        node.position.end.offset,
-      );
+      const listItem = parentStack.find((p) => p?.type === "listItem");
+      const hasCheckboxPrefix = listItem?.checked != null;
+
+      if (hasCheckboxPrefix) {
+        node.raw = node.value;
+      } else {
+        node.raw = options.originalText.slice(
+          node.position.start.offset,
+          node.position.end.offset,
+        );
+      }
     }
+
     return node;
   });
 }

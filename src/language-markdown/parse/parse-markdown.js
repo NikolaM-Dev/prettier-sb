@@ -11,6 +11,7 @@ import {
   liquidFromMarkdown,
   liquidSyntax,
 } from "./micromark/micromark-extension-liquid.js";
+import checkStatusFromMarkdown from "./unified-plugins/check-status.js";
 
 let markdownParseOptions;
 function getMarkdownParseOptions() {
@@ -34,6 +35,9 @@ function getMarkdownParseOptions() {
 function parseMarkdown(text) {
   const { frontMatter, content } = parseFrontMatter(text);
   const ast = fromMarkdown(content, getMarkdownParseOptions());
+
+  const processCheckStatus = checkStatusFromMarkdown();
+  processCheckStatus(ast);
 
   if (frontMatter) {
     const [start, end] = [frontMatter.start, frontMatter.end].map(
