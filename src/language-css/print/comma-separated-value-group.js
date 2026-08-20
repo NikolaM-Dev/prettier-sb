@@ -1,3 +1,4 @@
+import * as assert from "#universal/assert";
 import {
   breakParent,
   dedent,
@@ -66,6 +67,8 @@ function printCommaSeparatedValueGroup(path, options, print) {
   const isControlDirective =
     atRuleAncestorNode &&
     isSCSSControlDirectiveNode(atRuleAncestorNode, options);
+  const hasLogicalOperator =
+    isControlDirective && node.groups.some(isIfElseKeywordNode);
   const hasInlineComment = node.groups.some((node) =>
     isInlineValueCommentNode(node),
   );
@@ -224,30 +227,47 @@ function printCommaSeparatedValueGroup(path, options, print) {
     // Less property/variable lookup
     // https://lesscss.org/features/#detached-rulesets-feature-property-variable-accessors
     if (options.parser === "less") {
-      // `var [@result]`
+      // `foo [@bar]`
       //      ^
       if (iNextNode?.type === "value-word" && iNextNode.value === "[") {
         continue;
       }
 
-      // `var[ @result]`
-      //     ^
-      // `@var [ @@foo ] [ bar ]`
-      //                 ^
+      // Ignore spaces after `[` (i.e. `foo[ @bar]` or `foo[ bar]`)
       if (
         iNode.type === "value-word" &&
-        iNode.value === "[" &&
+        iNode.value.endsWith("[") &&
         (iNextNode?.type === "value-atword" || iNextNode?.type === "value-word")
+      ) {
+        assert.ok(
+          node.groups.some(
+            (node, index) =>
+              index > i &&
+              (node.value?.startsWith("]") || node.value?.endsWith("]")),
+          ),
+        );
+
+        continue;
+      }
+
+      // `foo[$@bar]`
+      //      ^
+      if (
+        iNode.type === "value-word" &&
+        iNode.value.endsWith("[$") &&
+        iNextNode?.type === "value-atword"
       ) {
         continue;
       }
 
-      // `@var [ @@foo ][ bar ]`
-      //               ^^
+      // `foo[ $@bar ]`
+      //       ^
       if (
         iNode.type === "value-word" &&
-        iNode.value === "][" &&
-        iNextNode?.type === "value-word"
+        iNode.value === "$" &&
+        iPrevNode?.type === "value-word" &&
+        iPrevNode.value.endsWith("[") &&
+        iNextNode?.type === "value-atword"
       ) {
         continue;
       }
@@ -310,6 +330,17 @@ function printCommaSeparatedValueGroup(path, options, print) {
     if (
       ((isMathOperator && isHashNode(iNextNode)) ||
         (isNextMathOperator && isRightCurlyBraceNode(iNode))) &&
+      hasEmptyRawBefore(iNextNode)
+    ) {
+      continue;
+    }
+
+    // Prevent the addition of a space inside type() declarations that include an + operator
+    // due to the fact that it is not valid syntax
+    // (i.e. `type(<number> +)`, `type(<color> +)`)
+    if (
+      isAdditionNode(iNextNode) &&
+      insideValueFunctionNode(path, "type") &&
       hasEmptyRawBefore(iNextNode)
     ) {
       continue;
@@ -415,6 +446,8 @@ function printCommaSeparatedValueGroup(path, options, print) {
       isControlDirective &&
       (isEqualityOperatorNode(iNextNode) ||
         isRelationalOperatorNode(iNextNode) ||
+        (hasLogicalOperator &&
+          (isEqualityOperatorNode(iNode) || isRelationalOperatorNode(iNode))) ||
         isIfElseKeywordNode(iNextNode) ||
         isEachKeywordNode(iNode) ||
         isForKeywordNode(iNode))
@@ -474,7 +507,7 @@ function printCommaSeparatedValueGroup(path, options, print) {
     }
 
     // Add `space` before next math operation
-    // Note: `grip` property have `/` delimiter and it is not math operation, so
+    // Note: `grid` property have `/` delimiter and it is not math operation, so
     // `grid` property handles above
     if (isNextMathOperator) {
       parts.push([parts.pop(), " "]);

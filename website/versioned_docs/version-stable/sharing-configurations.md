@@ -17,7 +17,7 @@ Shareable configs are just [npm packages](https://docs.npmjs.com/about-packages-
 Before we start, make sure you have:
 
 - An account for [npmjs.com](https://www.npmjs.com/) to publish the package
-- Basic understating about [how to create a Node.js module](https://docs.npmjs.com/creating-node-js-modules)
+- Basic understanding about [how to create a Node.js module](https://docs.npmjs.com/creating-node-js-modules)
 
 First, create a new package. We recommend creating a [scoped package](https://docs.npmjs.com/cli/v10/using-npm/scope) with the name `@username/prettier-config`.
 
@@ -46,7 +46,7 @@ Example `package.json`:
     "prettier": ">=3.0.0"
   },
   "devDependencies": {
-    "prettier": "3.9.3"
+    "prettier": "3.9.6"
   }
 }
 ```
@@ -193,7 +193,7 @@ export default config;
     "prettier": ">=3.0.0"
   },
   "devDependencies": {
-    "prettier": "3.9.3"
+    "prettier": "3.9.6"
   }
 }
 ```
