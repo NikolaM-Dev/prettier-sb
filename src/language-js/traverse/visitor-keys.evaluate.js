@@ -41,15 +41,8 @@ const excludeNodeTypes = [
   "ExperimentalSpreadProperty",
 
   // From flow-parser
-  "AbstractMethodDefinition",
-  "AbstractPropertyDefinition",
-  "ConstructorTypeAnnotation",
   "DeclareClassExtendsCall",
   "DeclareMethodDefinition",
-  "ExportAssignment",
-  "ExternalModuleReference",
-  "ImportEqualsDeclaration",
-  "ImportType",
   "NamespaceExportDeclaration",
   "NonNullExpression",
   "ObjectTypePrivateField",
@@ -57,7 +50,6 @@ const excludeNodeTypes = [
   "RendersMaybeType",
   "RendersStarType",
   "RendersType",
-  "TemplateLiteralTypeAnnotation",
   "TupleTypeElement",
 ];
 

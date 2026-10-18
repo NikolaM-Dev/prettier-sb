@@ -10,6 +10,7 @@ import {
   isBinaryCastExpression,
   isCallExpression,
   isCallOrNewExpression,
+  isClass,
   isConditionalType,
   isIntersectionType,
   isMemberExpression,
@@ -62,7 +63,8 @@ function needsParentheses(path, options) {
     node.type === "ObjectExpression" ||
     node.type === "FunctionExpression" ||
     node.type === "ClassExpression" ||
-    node.type === "DoExpression"
+    node.type === "DoExpression" ||
+    (node.type === "UnaryExpression" && node.operator === "throw")
   ) {
     const expression = path.findAncestor(
       (node) => node.type === "ExpressionStatement",
@@ -500,6 +502,7 @@ function needsParentheses(path, options) {
       break;
 
     case "ComponentTypeAnnotation":
+    case "ConstructorTypeAnnotation":
     case "FunctionTypeAnnotation": {
       if (
         node.type === "ComponentTypeAnnotation" &&
@@ -877,7 +880,31 @@ function needsParentheses(path, options) {
       );
 
     case "TSInstantiationExpression":
-      return key === "object" && isMemberExpression(parent);
+      /*
+      There are cases not really needed parentheses
+      - `(a<B>)()`
+      - `new (A<B>)()`
+      - ``` (a<B>)`` ```
+      - `class A extends (A<B>) {}`
+
+      However, `typescript-eslint` produces different AST,
+      we simply add parentheses without checking the shape of the expression.
+
+      See https://github.com/typescript-eslint/typescript-eslint/issues/12863
+      See https://github.com/typescript-eslint/typescript-eslint/issues/12012
+      */
+      if (
+        (key === "object" && isMemberExpression(parent)) ||
+        (key === "callee" && parent.type === "CallExpression") ||
+        (key === "callee" && parent.type === "NewExpression") ||
+        (key === "tag" && parent.type === "TaggedTemplateExpression") ||
+        (key === "expression" && parent.type === "TSNonNullExpression") ||
+        (key === "superClass" && isClass(parent))
+      ) {
+        return true;
+      }
+
+      break;
 
     case "MatchOrPattern":
       return parent.type === "MatchAsPattern";
@@ -932,6 +959,7 @@ const isStatement = createTypeCheckFunction([
   "TryStatement",
   "TSDeclareFunction",
   "TSEnumDeclaration",
+  "ImportEqualsDeclaration",
   "TSImportEqualsDeclaration",
   "TSInterfaceDeclaration",
   "TSModuleDeclaration",

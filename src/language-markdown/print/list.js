@@ -135,8 +135,12 @@ function printListItem(path, options, print, listPrefix) {
     prefix,
     printChildren(path, options, print, {
       processor({ node, isFirst }) {
-        if (isFirst && node.type !== "list") {
+        if ((isFirst && node.type !== "list") || node.type === "html") {
           return align(" ".repeat(prefix.length), print());
+        }
+
+        if (node.type === "code" && node.isIndented) {
+          return print();
         }
 
         const alignment = " ".repeat(
@@ -265,6 +269,10 @@ function printListItemLegacy(path, options, print, listPrefix) {
       processor({ node, isFirst }) {
         if (isFirst && node.type !== "list") {
           return align(" ".repeat(prefix.length), print());
+        }
+
+        if (node.type === "code" && node.isIndented) {
+          return print();
         }
 
         const alignment = " ".repeat(
