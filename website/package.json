@@ -29,7 +29,7 @@
     "@xiechao/codemirror-lang-handlebars": "1.0.4",
     "clipboard": "2.0.11",
     "clsx": "2.1.1",
-    "cm6-graphql": "0.2.2",
+    "cm6-graphql": "1.0.0",
     "github-buttons": "2.33.1",
     "graphql": "17.0.2",
     "lz-string": "1.5.0",
@@ -46,12 +46,12 @@
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/types": "3.10.2",
     "@types/react": "19.3.0",
-    "@vitejs/plugin-vue": "6.0.9",
+    "@vitejs/plugin-vue": "6.0.10",
     "@vitejs/plugin-vue-jsx": "5.1.6",
     "concurrently": "10.0.6",
     "package-dependencies-tree": "0.0.1",
     "rollup-plugin-visualizer": "7.1.1",
-    "vite": "8.3.4",
+    "vite": "8.3.5",
     "yaml": "2.9.1"
   },
   "browserslist": {

@@ -21,6 +21,9 @@ const additionalVisitorKeys = {
   TSJSDocUnknownType: [],
   TSJSDocNullableType: ["typeAnnotation"],
   TSJSDocNonNullableType: ["typeAnnotation"],
+
+  // flow-parser@0.337.0
+  EnumBigIntBody: ["members"],
 };
 
 const excludeVisitorKeys = {
@@ -41,16 +44,7 @@ const excludeNodeTypes = [
   "ExperimentalSpreadProperty",
 
   // From flow-parser
-  "DeclareClassExtendsCall",
   "DeclareMethodDefinition",
-  "NamespaceExportDeclaration",
-  "NonNullExpression",
-  "ObjectTypePrivateField",
-  "ParameterProperty",
-  "RendersMaybeType",
-  "RendersStarType",
-  "RendersType",
-  "TupleTypeElement",
 ];
 
 let visitorKeys = unionVisitorKeys(
@@ -63,6 +57,12 @@ let visitorKeys = unionVisitorKeys(
 visitorKeys = addVisitorKeys(visitorKeys, additionalVisitorKeys);
 visitorKeys = removeNodeTypes(visitorKeys, excludeNodeTypes);
 visitorKeys = removeVisitorKeys(visitorKeys, excludeVisitorKeys);
+
+// babel@8.1.0
+visitorKeys = removeVisitorKeys(visitorKeys, {
+  ExportNamespaceSpecifier: ["exportsFilter"],
+  ImportNamespaceSpecifier: ["exportsFilter"],
+});
 
 // This should be the last step
 visitorKeys = generateReferenceSharedVisitorKeys(visitorKeys);

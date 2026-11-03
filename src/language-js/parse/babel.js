@@ -54,6 +54,8 @@ const parseOptions = {
     "deferredImportEvaluation",
     ["optionalChainingAssign", { version: "2023-07" }],
     ["discardBinding", { syntaxType: "void" }],
+    "structs",
+    "importSync",
   ],
   tokens: false,
   // Ranges not available on comments, so we use `Node#{start,end}` instead
