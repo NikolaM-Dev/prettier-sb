@@ -33,6 +33,9 @@ const excludeVisitorKeys = {
 
   // Flow node from Babel
   TupleTypeAnnotation: ["types"],
+  ClassImplements: ["typeParameters"],
+  GenericTypeAnnotation: ["typeParameters"],
+  InterfaceExtends: ["typeParameters"],
 };
 
 const excludeNodeTypes = [
@@ -57,12 +60,6 @@ let visitorKeys = unionVisitorKeys(
 visitorKeys = addVisitorKeys(visitorKeys, additionalVisitorKeys);
 visitorKeys = removeNodeTypes(visitorKeys, excludeNodeTypes);
 visitorKeys = removeVisitorKeys(visitorKeys, excludeVisitorKeys);
-
-// babel@8.1.0
-visitorKeys = removeVisitorKeys(visitorKeys, {
-  ExportNamespaceSpecifier: ["exportsFilter"],
-  ImportNamespaceSpecifier: ["exportsFilter"],
-});
 
 // This should be the last step
 visitorKeys = generateReferenceSharedVisitorKeys(visitorKeys);
